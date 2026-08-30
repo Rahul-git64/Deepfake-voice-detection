@@ -52,3 +52,4 @@ mlartifacts/
 .pytest_cache/
 .coverage
 htmlcov/
+config.py
