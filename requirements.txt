@@ -1,0 +1,12 @@
+torch
+transformers
+librosa
+soundfile
+scikit-learn
+xgboost
+pandas
+numpy
+fastapi
+uvicorn
+python-multipart
+mlflow
