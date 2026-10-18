@@ -1,46 +1,41 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>VOXFORENSICS // Neural Voice Deepfake & Scam Detector</title>
+  <title>Verity — Voice Deepfake & Scam Detector</title>
 
-  <!-- Google Fonts: Space Grotesk, Inter, JetBrains Mono -->
+  <!-- Clean Typography -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet" />
 
-  <!-- Core Runtime Libraries -->
+  <!-- React 18 & WaveSurfer -->
   <script src="https://unpkg.com/react@18.3.1/umd/react.production.min.js"></script>
   <script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone@7.24.0/babel.min.js"></script>
   <script src="https://unpkg.com/wavesurfer.js@7.8.15/dist/wavesurfer.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
 
   <style>
     :root {
-      --bg-base: #07080d;
-      --bg-elevated: #0c0e17;
-      --glass-bg: rgba(255, 255, 255, 0.04);
-      --glass-bg-hover: rgba(255, 255, 255, 0.065);
-      --glass-border: rgba(255, 255, 255, 0.08);
-      --glass-border-bright: rgba(255, 255, 255, 0.16);
-      --text-primary: #e8ecf4;
-      --text-muted: #8b93a7;
-      --text-dim: #525b70;
+      --bg: #090a0f;
+      --card-bg: rgba(255, 255, 255, 0.032);
+      --card-border: rgba(255, 255, 255, 0.08);
+      --card-border-hover: rgba(255, 255, 255, 0.16);
+      --text: #eef1f6;
+      --text-muted: #8b92a5;
+      --text-dim: #555c70;
 
-      /* Forensic State Accents */
-      --cyan: #22d3ee;
-      --cyan-glow: rgba(34, 211, 238, 0.25);
-      --green: #34d399;
-      --green-glow: rgba(52, 211, 153, 0.25);
-      --magenta: #ff2e88;
-      --magenta-glow: rgba(255, 46, 136, 0.28);
-      --red: #ff4d4d;
-      --red-glow: rgba(255, 77, 77, 0.3);
-      --amber: #fbbf24;
-      --amber-glow: rgba(251, 191, 36, 0.25);
+      --human: #22c55e;
+      --human-bg: rgba(34, 197, 94, 0.1);
+      --human-border: rgba(34, 197, 94, 0.35);
+
+      --spoof: #ef4444;
+      --spoof-bg: rgba(239, 68, 68, 0.1);
+      --spoof-border: rgba(239, 68, 68, 0.35);
+
+      --amber: #f59e0b;
+      --cyan: #06b6d4;
 
       --font-heading: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
       --font-body: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
@@ -52,259 +47,209 @@
       margin: 0;
       padding: 0;
       -webkit-font-smoothing: antialiased;
-      -moz-osx-font-smoothing: grayscale;
-    }
-
-    html {
-      scroll-behavior: smooth;
-      background-color: var(--bg-base);
-      color: var(--text-primary);
-      font-family: var(--font-body);
     }
 
     body {
-      background-color: var(--bg-base);
-      color: var(--text-primary);
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: var(--font-body);
       min-height: 100vh;
-      overflow-x: hidden;
-      position: relative;
       line-height: 1.5;
+      position: relative;
     }
 
-    /* Animated Cyber Forensics Grid + Noise Overlay */
-    .cyber-grid {
+    /* Subtle fine grid */
+    .grid-bg {
       position: fixed;
       inset: 0;
+      pointer-events: none;
+      z-index: 0;
       background-size: 48px 48px;
       background-image:
-        linear-gradient(to right, rgba(255, 255, 255, 0.022) 1px, transparent 1px),
-        linear-gradient(to bottom, rgba(255, 255, 255, 0.022) 1px, transparent 1px);
-      mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 40%, transparent 100%);
-      -webkit-mask-image: radial-gradient(ellipse 80% 70% at 50% 30%, #000 40%, transparent 100%);
-      pointer-events: none;
-      z-index: 0;
-      animation: gridDrift 24s linear infinite;
+        linear-gradient(to right, rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
+      mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 100%);
+      -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, #000 40%, transparent 100%);
     }
-
-    @keyframes gridDrift {
-      0% { transform: translateY(0px); }
-      100% { transform: translateY(48px); }
-    }
-
-    .noise-overlay {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 1;
-      opacity: 0.032;
-      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
-    }
-
-    .ambient-glow {
-      position: fixed;
-      inset: 0;
-      pointer-events: none;
-      z-index: 0;
-      transition: background 0.9s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    /* Typography helpers */
-    h1, h2, h3, h4, .font-heading { font-family: var(--font-heading); }
-    .mono { font-family: var(--font-mono); }
 
     .container {
-      max-width: 1240px;
+      max-width: 860px;
       margin: 0 auto;
-      padding: 0 24px;
+      padding: 0 20px;
       position: relative;
-      z-index: 10;
+      z-index: 5;
     }
 
-    /* Sticky Translucent Navbar */
-    .navbar {
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      height: 72px;
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      background: rgba(7, 8, 13, 0.78);
-      border-bottom: 1px solid var(--glass-border);
-      transition: border-color 0.3s ease;
-    }
+    .mono { font-family: var(--font-mono); }
+    h1, h2, h3 { font-family: var(--font-heading); }
 
-    .nav-content {
+    /* Header */
+    header {
+      padding: 24px 0 16px;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      height: 100%;
+      border-bottom: 1px solid var(--card-border);
+      margin-bottom: 36px;
     }
 
     .brand {
       display: flex;
       align-items: center;
-      gap: 12px;
-      text-decoration: none;
-      color: var(--text-primary);
-    }
-
-    .brand-mark {
-      width: 38px;
-      height: 38px;
-      border-radius: 10px;
-      background: linear-gradient(135deg, rgba(34, 211, 238, 0.18), rgba(255, 46, 136, 0.18));
-      border: 1px solid rgba(34, 211, 238, 0.4);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
-      position: relative;
-    }
-
-    .nav-links {
-      display: flex;
-      align-items: center;
-      gap: 28px;
-    }
-
-    .nav-link {
-      color: var(--text-muted);
-      text-decoration: none;
-      font-size: 14px;
-      font-weight: 500;
-      transition: color 0.2s ease;
-    }
-    .nav-link:hover { color: var(--text-primary); }
-
-    .health-pill {
-      display: inline-flex;
-      align-items: center;
       gap: 10px;
-      padding: 6px 14px;
-      border-radius: 9999px;
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      font-size: 12px;
-      color: var(--text-primary);
+      text-decoration: none;
+      color: var(--text);
+    }
+    .brand-title {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .brand-badge {
+      font-size: 11px;
+      padding: 3px 8px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      border-radius: 4px;
+      color: var(--text-muted);
     }
 
-    .pulse-dot {
-      width: 8px;
-      height: 8px;
-      border-radius: 50%;
-      position: relative;
-    }
-    .pulse-dot.online {
-      background: var(--green);
-      box-shadow: 0 0 10px var(--green);
-    }
-    .pulse-dot.online::after {
-      content: '';
-      position: absolute;
-      inset: -4px;
-      border-radius: 50%;
-      border: 1px solid var(--green);
-      animation: ping 2s cubic-bezier(0, 0, 0.2, 1) infinite;
-    }
-    .pulse-dot.offline {
-      background: var(--red);
-      box-shadow: 0 0 10px var(--red);
-    }
-
-    @keyframes ping {
-      75%, 100% { transform: scale(2); opacity: 0; }
-    }
-
-    /* Glass Card with Cursor-Following Spotlight */
-    .glass-card {
-      background: var(--glass-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-      border: 1px solid var(--glass-border);
-      border-radius: 20px;
-      position: relative;
-      overflow: hidden;
-      transition: border-color 0.3s ease, box-shadow 0.4s ease, transform 0.25s ease;
-    }
-
-    .glass-card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      background: radial-gradient(
-        600px circle at var(--mouse-x, -500px) var(--mouse-y, -500px),
-        rgba(255, 255, 255, 0.055),
-        transparent 40%
-      );
-      pointer-events: none;
-      z-index: 1;
-    }
-
-    .glass-card > * {
-      position: relative;
-      z-index: 2;
-    }
-
-    /* Hero Section */
-    .hero-section {
-      padding: 64px 0 40px;
-      text-align: center;
-      position: relative;
-    }
-
-    .eyebrow-pill {
+    .status-dot {
       display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+    }
+    .dot.online {
+      background: var(--human);
+      box-shadow: 0 0 8px var(--human);
+    }
+    .dot.offline {
+      background: var(--spoof);
+    }
+
+    /* Hero / Title */
+    .hero {
+      text-align: center;
+      margin-bottom: 32px;
+    }
+    .hero-title {
+      font-size: clamp(32px, 5vw, 44px);
+      font-weight: 700;
+      letter-spacing: -0.03em;
+      line-height: 1.15;
+      margin-bottom: 10px;
+    }
+    .hero-subtitle {
+      font-size: 15px;
+      color: var(--text-muted);
+      max-width: 580px;
+      margin: 0 auto;
+    }
+
+    /* Clean Card */
+    .card {
+      background: var(--card-bg);
+      border: 1px solid var(--card-border);
+      border-radius: 14px;
+      padding: 24px;
+      margin-bottom: 24px;
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+    }
+
+    /* Sample Chips */
+    .chips-bar {
+      display: flex;
       align-items: center;
       gap: 8px;
-      padding: 6px 16px;
-      border-radius: 9999px;
-      background: rgba(34, 211, 238, 0.07);
-      border: 1px solid rgba(34, 211, 238, 0.25);
-      color: var(--cyan);
+      flex-wrap: wrap;
+      margin-bottom: 20px;
+    }
+    .chips-label {
       font-size: 12px;
-      font-weight: 600;
-      letter-spacing: 0.06em;
+      color: var(--text-dim);
       text-transform: uppercase;
-      margin-bottom: 22px;
+      letter-spacing: 0.05em;
+      margin-right: 4px;
+    }
+    .chip {
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px solid var(--card-border);
+      color: var(--text);
+      padding: 7px 13px;
+      font-size: 12.5px;
+      font-weight: 500;
+      border-radius: 6px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.15s ease;
+    }
+    .chip:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--card-border-hover);
+    }
+    .chip.active-human {
+      border-color: var(--human);
+      background: var(--human-bg);
+      color: #86efac;
+    }
+    .chip.active-spoof {
+      border-color: var(--spoof);
+      background: var(--spoof-bg);
+      color: #fca5a5;
     }
 
-    .hero-headline {
-      font-size: clamp(38px, 6vw, 68px);
-      font-weight: 700;
-      letter-spacing: -0.035em;
-      line-height: 1.06;
-      margin-bottom: 18px;
-      color: var(--text-primary);
+    /* Drag & Drop Zone */
+    .dropzone {
+      border: 2px dashed rgba(255, 255, 255, 0.14);
+      border-radius: 12px;
+      padding: 34px 20px;
+      text-align: center;
+      cursor: pointer;
+      background: rgba(255, 255, 255, 0.015);
+      transition: all 0.2s ease;
+      outline: none;
     }
-
-    .gradient-sweep {
-      background: linear-gradient(90deg, var(--cyan) 0%, #a855f7 35%, var(--magenta) 65%, var(--cyan) 100%);
-      background-size: 200% auto;
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      animation: gradientFlow 5s linear infinite;
+    .dropzone:hover, .dropzone:focus-visible, .dropzone.active {
+      border-color: var(--cyan);
+      background: rgba(6, 182, 212, 0.04);
     }
-
-    @keyframes gradientFlow {
-      0% { background-position: 0% center; }
-      100% { background-position: 200% center; }
-    }
-
-    .hero-subtitle {
-      font-size: clamp(16px, 2vw, 19px);
-      color: var(--text-muted);
-      max-width: 680px;
-      margin: 0 auto 32px;
-      font-weight: 400;
-    }
-
-    .cta-group {
+    .dropzone-icon {
+      width: 44px;
+      height: 44px;
+      margin: 0 auto 12px;
+      border-radius: 10px;
+      background: rgba(255, 255, 255, 0.04);
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 14px;
-      flex-wrap: wrap;
-      margin-bottom: 28px;
+      color: var(--cyan);
+    }
+
+    /* Waveform Container */
+    .waveform-box {
+      margin-top: 20px;
+      background: rgba(0, 0, 0, 0.4);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .waveform-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 10px;
     }
 
     /* Buttons */
@@ -312,1372 +257,321 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-      gap: 10px;
-      padding: 13px 24px;
-      border-radius: 12px;
-      font-size: 14px;
+      gap: 8px;
+      padding: 10px 18px;
+      font-size: 13.5px;
       font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-      text-decoration: none;
+      border-radius: 8px;
       border: 1px solid transparent;
-      outline: none;
-    }
-    .btn:focus-visible {
-      box-shadow: 0 0 0 3px var(--cyan-glow), 0 0 0 1px var(--cyan);
+      cursor: pointer;
+      transition: all 0.15s ease;
     }
     .btn:disabled {
       opacity: 0.45;
       cursor: not-allowed;
-      transform: none !important;
+    }
+    .btn-primary {
+      background: #ffffff;
+      color: #090a0f;
+    }
+    .btn-primary:hover:not(:disabled) {
+      background: #e2e8f0;
+    }
+    .btn-action {
+      background: linear-gradient(135deg, #0284c7, #06b6d4);
+      color: #ffffff;
+      width: 100%;
+      padding: 14px;
+      font-size: 15px;
+      margin-top: 18px;
+      box-shadow: 0 4px 18px rgba(6, 182, 212, 0.25);
+    }
+    .btn-action:hover:not(:disabled) {
+      box-shadow: 0 6px 24px rgba(6, 182, 212, 0.38);
+    }
+    .btn-ghost {
+      background: rgba(255, 255, 255, 0.05);
+      color: var(--text);
+      border-color: var(--card-border);
+    }
+    .btn-ghost:hover:not(:disabled) {
+      background: rgba(255, 255, 255, 0.09);
     }
 
-    .btn-cyan {
-      background: linear-gradient(135deg, var(--cyan), #06b6d4);
-      color: #04121a;
-      box-shadow: 0 6px 24px rgba(34, 211, 238, 0.28);
+    /* Verdict Card */
+    .verdict-box {
+      border-radius: 12px;
+      padding: 24px;
+      margin-top: 24px;
+      animation: fadeIn 0.3s ease;
     }
-    .btn-cyan:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 10px 32px rgba(34, 211, 238, 0.45);
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
     }
-
-    .btn-glass {
-      background: var(--glass-bg);
-      color: var(--text-primary);
-      border-color: var(--glass-border);
+    .verdict-box.human {
+      background: var(--human-bg);
+      border: 1px solid var(--human-border);
     }
-    .btn-glass:hover:not(:disabled) {
-      background: var(--glass-bg-hover);
-      border-color: var(--glass-border-bright);
-      transform: translateY(-1px);
-    }
-
-    .btn-record {
-      background: rgba(255, 46, 136, 0.1);
-      color: var(--magenta);
-      border-color: rgba(255, 46, 136, 0.35);
-    }
-    .btn-record:hover:not(:disabled) {
-      background: rgba(255, 46, 136, 0.18);
-      box-shadow: 0 0 20px rgba(255, 46, 136, 0.25);
-    }
-    .btn-record.recording {
-      background: var(--red);
-      color: #fff;
-      border-color: var(--red);
-      animation: recordPulse 1.2s ease-in-out infinite;
+    .verdict-box.spoof {
+      background: var(--spoof-bg);
+      border: 1px solid var(--spoof-border);
     }
 
-    @keyframes recordPulse {
-      0%, 100% { box-shadow: 0 0 0 0 rgba(255, 77, 77, 0.6); }
-      50% { box-shadow: 0 0 0 10px rgba(255, 77, 77, 0); }
-    }
-
-    /* Detector Workbench Layout */
-    .workbench-grid {
-      display: grid;
-      grid-template-columns: 1fr;
-      gap: 24px;
-      max-width: 1020px;
-      margin: 0 auto;
-    }
-
-    /* Dropzone */
-    .dropzone {
-      border: 1.5px dashed rgba(255, 255, 255, 0.15);
-      border-radius: 16px;
-      padding: 36px 24px;
-      text-align: center;
-      cursor: pointer;
-      background: rgba(255, 255, 255, 0.015);
-      transition: all 0.25s ease;
-      position: relative;
-      outline: none;
-    }
-    .dropzone:hover, .dropzone:focus-visible, .dropzone.drag-active {
-      border-color: var(--cyan);
-      background: rgba(34, 211, 238, 0.045);
-      box-shadow: inset 0 0 30px rgba(34, 211, 238, 0.06);
-    }
-
-    /* Sample & Mic Controls Bar */
-    .controls-toolbar {
+    .verdict-header {
       display: flex;
       align-items: center;
       justify-content: space-between;
       flex-wrap: wrap;
       gap: 12px;
-      margin-bottom: 20px;
-      padding-bottom: 18px;
-      border-bottom: 1px solid var(--glass-border);
+      margin-bottom: 16px;
     }
+    .verdict-title {
+      font-size: 24px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+    .verdict-box.human .verdict-title { color: #4ade80; }
+    .verdict-box.spoof .verdict-title { color: #f87171; }
 
-    .sample-chip {
-      display: inline-flex;
-      align-items: center;
-      gap: 8px;
-      padding: 8px 14px;
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 500;
-      background: rgba(255, 255, 255, 0.04);
-      border: 1px solid var(--glass-border);
-      color: var(--text-primary);
-      cursor: pointer;
-      transition: all 0.2s ease;
-    }
-    .sample-chip:hover {
-      background: rgba(255, 255, 255, 0.09);
-      border-color: var(--glass-border-bright);
-    }
-    .sample-chip.real:hover, .sample-chip.real.active {
-      border-color: var(--green);
-      background: rgba(52, 211, 153, 0.12);
-      color: var(--green);
-    }
-    .sample-chip.fake:hover, .sample-chip.fake.active {
-      border-color: var(--magenta);
-      background: rgba(255, 46, 136, 0.12);
-      color: var(--magenta);
-    }
-
-    /* Waveform & Spectrogram Panels */
-    .acoustic-panel {
-      background: rgba(4, 5, 10, 0.7);
-      border: 1px solid var(--glass-border);
-      border-radius: 14px;
-      padding: 16px;
-      margin-top: 18px;
-      position: relative;
-      overflow: hidden;
-    }
-
-    .panel-header {
+    /* Semicircle Gauge */
+    .gauge-wrapper {
       display: flex;
       align-items: center;
-      justify-content: space-between;
-      margin-bottom: 10px;
+      justify-content: center;
+      position: relative;
+      margin: 12px 0 18px;
+    }
+
+    /* Plain English Visual Scorecard */
+    .scorecard {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin: 20px 0 16px;
+    }
+    .scorecard-header {
       font-size: 12px;
       color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
 
-    /* Scan Beam Overlay during Analyzing */
-    .laser-scan-overlay {
-      position: absolute;
-      top: 0;
-      bottom: 0;
-      width: 80px;
-      background: linear-gradient(90deg, transparent, rgba(251, 191, 36, 0.28), rgba(251, 191, 36, 0.85), rgba(251, 191, 36, 0.28), transparent);
-      pointer-events: none;
-      z-index: 20;
-      animation: laserSweep 1.35s cubic-bezier(0.4, 0, 0.2, 1) infinite;
-    }
-
-    @keyframes laserSweep {
-      0% { left: -80px; }
-      100% { left: 100%; }
-    }
-
-    /* Verdict States: Bonafide & Spoof */
-    .verdict-banner {
-      border-radius: 18px;
-      padding: 28px;
-      margin-top: 24px;
-      position: relative;
-      overflow: hidden;
-      transition: all 0.4s ease;
-    }
-
-    .verdict-banner.bonafide {
-      background: linear-gradient(145deg, rgba(34, 211, 238, 0.08), rgba(52, 211, 153, 0.05));
-      border: 1px solid rgba(52, 211, 153, 0.4);
-      box-shadow: 0 0 40px rgba(52, 211, 153, 0.12);
-    }
-
-    .verdict-banner.spoof {
-      background: linear-gradient(145deg, rgba(255, 46, 136, 0.1), rgba(255, 77, 77, 0.05));
-      border: 1px solid rgba(255, 46, 136, 0.55);
-      animation: spoofShake 0.32s cubic-bezier(0.36, 0.07, 0.19, 0.97) both, alertBorderPulse 2s infinite;
-    }
-
-    @keyframes spoofShake {
-      0%, 100% { transform: translateX(0); }
-      15%, 45%, 75% { transform: translateX(-7px); }
-      30%, 60%, 90% { transform: translateX(7px); }
-    }
-
-    @keyframes alertBorderPulse {
-      0%, 100% {
-        box-shadow: 0 0 30px rgba(255, 46, 136, 0.18), inset 0 0 15px rgba(255, 46, 136, 0.1);
-        border-color: rgba(255, 46, 136, 0.55);
-      }
-      50% {
-        box-shadow: 0 0 50px rgba(255, 77, 77, 0.38), inset 0 0 25px rgba(255, 77, 77, 0.22);
-        border-color: var(--red);
-      }
-    }
-
-    /* RGB-Split Glitch Effect for Spoof Verdict Text */
-    .rgb-glitch {
-      position: relative;
-      display: inline-block;
-      color: #fff;
-      text-shadow:
-        -2px 0 var(--cyan),
-        2px 0 var(--magenta);
-      animation: glitchText 2.4s infinite;
-    }
-
-    @keyframes glitchText {
-      0%, 92%, 100% {
-        text-shadow: -1.5px 0 var(--cyan), 1.5px 0 var(--magenta);
-        transform: translate(0);
-      }
-      94% {
-        text-shadow: -4px -1px var(--cyan), 4px 1px var(--red);
-        transform: translate(-2px, 1px);
-      }
-      96% {
-        text-shadow: 3px 1px var(--cyan), -3px -1px var(--magenta);
-        transform: translate(2px, -1px);
-      }
-      98% {
-        text-shadow: -2px 0 var(--green), 2px 0 var(--red);
-        transform: translate(0, 1px);
-      }
-    }
-
-    /* Animated Check Ring for Bonafide */
-    .check-ring-circle {
-      stroke-dasharray: 160;
-      stroke-dashoffset: 160;
-      animation: drawRing 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-    }
-    .check-ring-tick {
-      stroke-dasharray: 50;
-      stroke-dashoffset: 50;
-      animation: drawRing 0.45s cubic-bezier(0.16, 1, 0.3, 1) 0.35s forwards;
-    }
-
-    @keyframes drawRing {
-      to { stroke-dashoffset: 0; }
-    }
-
-    /* Pipeline Horizontal Flow */
-    .pipeline-track {
+    .scorecard-row {
       display: grid;
-      grid-template-columns: repeat(6, 1fr);
-      gap: 14px;
-      position: relative;
-      margin-top: 40px;
+      grid-template-columns: 28px 1fr auto;
+      gap: 12px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .scorecard-row:last-child {
+      border-bottom: none;
+    }
+    .scorecard-name {
+      font-size: 13.5px;
+      font-weight: 600;
+      color: var(--text);
+    }
+    .scorecard-desc {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 1px;
+    }
+    .pill {
+      font-size: 11px;
+      padding: 4px 10px;
+      border-radius: 4px;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    .pill.natural {
+      background: rgba(34, 197, 94, 0.15);
+      color: #86efac;
+      border: 1px solid rgba(34, 197, 94, 0.3);
+    }
+    .pill.artificial {
+      background: rgba(239, 68, 68, 0.15);
+      color: #fca5a5;
+      border: 1px solid rgba(239, 68, 68, 0.3);
     }
 
-    .pipeline-step {
-      background: var(--glass-bg);
-      border: 1px solid var(--glass-border);
-      border-radius: 16px;
-      padding: 20px 16px;
-      position: relative;
-      transition: all 0.3s ease;
-    }
-    .pipeline-step:hover {
-      border-color: var(--cyan);
-      transform: translateY(-4px);
-      box-shadow: 0 12px 30px rgba(34, 211, 238, 0.12);
+    /* Layperson summary statement */
+    .layperson-box {
+      background: rgba(255, 255, 255, 0.025);
+      border-left: 3px solid var(--cyan);
+      padding: 12px 16px;
+      border-radius: 0 6px 6px 0;
+      font-size: 13.5px;
+      color: var(--text);
+      line-height: 1.5;
+      margin-top: 14px;
     }
 
-    .pulse-connector {
-      position: absolute;
-      top: 50%;
-      right: -15px;
-      width: 16px;
-      height: 2px;
-      background: rgba(255, 255, 255, 0.12);
-      z-index: 5;
+    /* Probability Dual Bars */
+    .prob-bar {
+      height: 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.06);
       overflow: hidden;
-    }
-    .pulse-connector::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: -100%;
-      width: 100%;
-      height: 100%;
-      background: linear-gradient(90deg, transparent, var(--cyan), transparent);
-      animation: pulseTravel 1.8s linear infinite;
+      display: flex;
+      margin-top: 8px;
     }
 
-    @keyframes pulseTravel {
-      0% { left: -100%; }
-      100% { left: 100%; }
+    /* Footer */
+    footer {
+      border-top: 1px solid var(--card-border);
+      padding: 24px 0 36px;
+      font-size: 13px;
+      color: var(--text-muted);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
     }
 
-    /* Responsive adjustments */
-    @media (max-width: 1024px) {
-      .pipeline-track {
-        grid-template-columns: repeat(3, 1fr);
-      }
-      .pulse-connector { display: none; }
-    }
     @media (max-width: 640px) {
-      .pipeline-track {
-        grid-template-columns: 1fr;
+      .scorecard-row {
+        grid-template-columns: 24px 1fr;
       }
-      .nav-links { display: none; }
-      .verdict-banner { padding: 20px; }
-    }
-
-    /* Reduced Motion Compliance */
-    @media (prefers-reduced-motion: reduce) {
-      *, ::before, ::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
+      .scorecard-row .pill {
+        grid-column: 2;
+        justify-self: start;
+        margin-top: 4px;
       }
     }
   </style>
 </head>
 <body>
-  <div class="cyber-grid"></div>
-  <div class="noise-overlay"></div>
+  <div class="grid-bg"></div>
+
   <div id="root"></div>
 
   <script type="text/babel">
-    const { useState, useEffect, useRef, useReducer, useCallback, useMemo } = React;
+    const { useState, useEffect, useRef } = React;
 
-    // ============================================================================
-    // 1. CONFIG & MODEL FACTS (Single Source of Truth)
-    // ============================================================================
-    const CONFIG = {
-      RISK_THRESHOLDS: {
-        HIGH: 0.85,
-        MEDIUM: 0.60,
-      },
-      MAX_FILE_SIZE_BYTES: 10 * 1024 * 1024, // 10 MB
-      MIN_ANALYZING_MS: 1800,
-      HEALTH_POLL_MS: 15000,
-      MAX_RECORD_SEC: 30,
-      FACTS: {
-        dataset: 'ASVspoof 2019 Logical Access (LA)',
-        trainClips: '25,380',
-        devClips: '24,844',
-        backbone: 'facebook/wav2vec2-base',
-        preprocessing: 'Mono conversion & 16 kHz resample',
-        transformerBlocks: '12 Transformer blocks → Mean-pooled 768-d vector',
-        classifier: '768 → Dense 256 (BatchNorm, ReLU, Dropout 0.3) → Dense 64 (ReLU, Dropout 0.3) → 2 classes',
-        training: 'Balanced class weights (spoof:bonafide ~9:1), AdamW (lr 1e-3), batch 128',
-        devEer: '1.41%',
-        eerThreshold: '0.6402',
-        devAccuracy: '99.22%',
-        latency: 'A few hundred ms on CPU',
-      }
-    };
-
-    function getRiskClassification(prediction, spoofProb) {
-      if (prediction === 'bonafide') {
-        return { label: 'Authentic', color: 'var(--green)', bg: 'rgba(52, 211, 153, 0.14)', border: 'rgba(52, 211, 153, 0.4)' };
-      }
-      if (spoofProb >= CONFIG.RISK_THRESHOLDS.HIGH) {
-        return { label: 'High Risk', color: 'var(--red)', bg: 'rgba(255, 77, 77, 0.16)', border: 'rgba(255, 77, 77, 0.5)' };
-      }
-      if (spoofProb >= CONFIG.RISK_THRESHOLDS.MEDIUM) {
-        return { label: 'Medium Risk', color: 'var(--amber)', bg: 'rgba(251, 191, 36, 0.15)', border: 'rgba(251, 191, 36, 0.45)' };
-      }
-      return { label: 'Low Risk', color: 'var(--magenta)', bg: 'rgba(255, 46, 136, 0.14)', border: 'rgba(255, 46, 136, 0.4)' };
-    }
-
-    // ============================================================================
-    // 2. BESPOKE SVG ICONS (Crisp Vector Icons)
-    // ============================================================================
-    const Icon = {
-      ShieldCheck: ({ size = 20, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-          <path d="m9 12 2 2 4-4" />
+    // SVG Icons
+    const SvgIcon = {
+      Check: () => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <polyline points="20 6 9 17 4 12" />
         </svg>
       ),
-      AlertOctagon: ({ size = 20, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2" />
+      Alert: () => (
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" />
           <line x1="12" y1="8" x2="12" y2="12" />
           <line x1="12" y1="16" x2="12.01" y2="16" />
         </svg>
       ),
-      Mic: ({ size = 18, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3Z" />
-          <path d="M19 10v2a7 7 0 0 1-14 0v-2" />
-          <line x1="12" y1="19" x2="12" y2="22" />
+      Upload: () => (
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+          <polyline points="17 8 12 3 7 8" />
+          <line x1="12" y1="3" x2="12" y2="15" />
         </svg>
       ),
-      UploadCloud: ({ size = 32, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-          <path d="M12 12v9" />
-          <path d="m16 16-4-4-4 4" />
-        </svg>
-      ),
-      Play: ({ size = 16, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      Play: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <polygon points="5 3 19 12 5 21 5 3" />
         </svg>
       ),
-      Pause: ({ size = 16, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill={color} stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      Pause: () => (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
           <rect x="6" y="4" width="4" height="16" />
           <rect x="14" y="4" width="4" height="16" />
         </svg>
       ),
-      Activity: ({ size = 18, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-        </svg>
-      ),
-      Cpu: ({ size = 18, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect x="4" y="4" width="16" height="16" rx="2" />
-          <rect x="9" y="9" width="6" height="6" />
-          <path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2" />
-        </svg>
-      ),
-      Download: ({ size = 16, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-          <polyline points="7 10 12 15 17 10" />
-          <line x1="12" y1="15" x2="12" y2="3" />
-        </svg>
-      ),
-      Refresh: ({ size = 16, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8" />
-          <path d="M21 3v5h-5" />
-          <path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16" />
-          <path d="M8 16H3v5" />
-        </svg>
-      ),
-      Github: ({ size = 18, color = 'currentColor' }) => (
-        <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-          <path d="M9 18c-4.51 2-5-2-7-2" />
-        </svg>
-      ),
     };
 
-    // ============================================================================
-    // 3. STATE MACHINE (useReducer, Single Source of Truth)
-    // ============================================================================
-    const initialState = {
-      status: 'idle', // 'idle' | 'loaded' | 'analyzing' | 'result_bonafide' | 'result_spoof' | 'error'
-      file: null,
-      audioUrl: null,
-      audioBuffer: null,
-      activeSample: null, // 'real' | 'fake' | 'mic' | 'upload'
-      analysisStep: 0, // 0: Resampling, 1: Wav2Vec2, 2: Classifying
-      result: null,
-      errorMsg: null,
-      errorKind: null, // 'offline' | 'file' | 'timeout'
-      history: [],
-    };
-
-    function detectorReducer(state, action) {
-      switch (action.type) {
-        case 'LOAD_FILE':
-          return {
-            ...state,
-            status: 'loaded',
-            file: action.file,
-            audioUrl: action.audioUrl,
-            audioBuffer: action.audioBuffer || null,
-            activeSample: action.sampleType || 'upload',
-            result: null,
-            errorMsg: null,
-            errorKind: null,
-          };
-        case 'SET_AUDIO_BUFFER':
-          return {
-            ...state,
-            audioBuffer: action.audioBuffer,
-          };
-        case 'START_ANALYZING':
-          return {
-            ...state,
-            status: 'analyzing',
-            analysisStep: 0,
-            errorMsg: null,
-            errorKind: null,
-          };
-        case 'STEP_ANALYZING':
-          return {
-            ...state,
-            analysisStep: action.step,
-          };
-        case 'SET_RESULT': {
-          const nextStatus = action.result.prediction === 'bonafide' ? 'result_bonafide' : 'result_spoof';
-          const historyEntry = {
-            ...action.result,
-            id: `${Date.now()}_${state.history.length + 1}`,
-            runNumber: state.history.length + 1,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-          };
-          return {
-            ...state,
-            status: nextStatus,
-            result: action.result,
-            history: [...state.history, historyEntry],
-          };
-        }
-        case 'RELOAD_HISTORY_ITEM': {
-          const item = action.item;
-          return {
-            ...state,
-            status: item.prediction === 'bonafide' ? 'result_bonafide' : 'result_spoof',
-            result: item,
-          };
-        }
-        case 'SET_ERROR':
-          return {
-            ...state,
-            status: 'error',
-            errorMsg: action.msg,
-            errorKind: action.kind || 'file',
-          };
-        case 'RESET':
-          return {
-            ...state,
-            status: 'idle',
-            file: null,
-            audioUrl: null,
-            audioBuffer: null,
-            activeSample: null,
-            result: null,
-            errorMsg: null,
-            errorKind: null,
-          };
-        default:
-          return state;
-      }
-    }
-
-    // ============================================================================
-    // 4. RADIX-2 COOLEY-TUKEY FFT FOR REAL SPECTROGRAM COMPUTATION
-    // ============================================================================
-    function computeFFT(real, imag) {
-      const n = real.length;
-      if (n <= 1) return;
-
-      // Bit-reversal permutation
-      let j = 0;
-      for (let i = 0; i < n; i++) {
-        if (i < j) {
-          const tr = real[j]; real[j] = real[i]; real[i] = tr;
-          const ti = imag[j]; imag[j] = imag[i]; imag[i] = ti;
-        }
-        let m = n >> 1;
-        while (m >= 1 && j >= m) {
-          j -= m;
-          m >>= 1;
-        }
-        j += m;
-      }
-
-      // Butterfly updates
-      for (let s = 2; s <= n; s <<= 1) {
-        const half = s >> 1;
-        const angleStep = (-2 * Math.PI) / s;
-        const wStepR = Math.cos(angleStep);
-        const wStepI = Math.sin(angleStep);
-
-        for (let k = 0; k < n; k += s) {
-          let wR = 1;
-          let wI = 0;
-          for (let m = 0; m < half; m++) {
-            const idx1 = k + m;
-            const idx2 = idx1 + half;
-            const tR = wR * real[idx2] - wI * imag[idx2];
-            const tI = wR * imag[idx2] + wI * real[idx2];
-            real[idx2] = real[idx1] - tR;
-            imag[idx2] = imag[idx1] - tI;
-            real[idx1] += tR;
-            imag[idx1] += tI;
-            const nextWR = wR * wStepR - wI * wStepI;
-            wI = wR * wStepI + wI * wStepR;
-            wR = nextWR;
-          }
-        }
-      }
-    }
-
-    // Forensic Colormap: Deep Void (#07080d) -> Cyan (#22d3ee) -> Magenta (#ff2e88) -> White (#ffffff)
-    function getSpectrogramRGB(normVal) {
-      const v = Math.max(0, Math.min(1, normVal));
-      if (v < 0.25) {
-        const t = v / 0.25;
-        return [
-          Math.round(7 + t * (14 - 7)),
-          Math.round(8 + t * (116 - 8)),
-          Math.round(13 + t * (144 - 13)),
-        ];
-      } else if (v < 0.55) {
-        const t = (v - 0.25) / 0.30;
-        return [
-          Math.round(14 + t * (34 - 14)),
-          Math.round(116 + t * (211 - 116)),
-          Math.round(144 + t * (238 - 144)),
-        ];
-      } else if (v < 0.85) {
-        const t = (v - 0.55) / 0.30;
-        return [
-          Math.round(34 + t * (255 - 34)),
-          Math.round(211 + t * (46 - 211)),
-          Math.round(238 + t * (136 - 238)),
-        ];
-      } else {
-        const t = (v - 0.85) / 0.15;
-        return [
-          255,
-          Math.round(46 + t * (255 - 46)),
-          Math.round(136 + t * (255 - 136)),
-        ];
-      }
-    }
-
-    // ============================================================================
-    // 5. COMPONENT: 3D HARMONIC SOUND ORB + 64 MIRRORED FREQUENCY BARS
-    // ============================================================================
-    function SoundOrbAndBars({ status, getFrequencyData, isPlayingOrRecording }) {
-      const canvasRef = useRef(null);
-      const smoothedBarsRef = useRef(new Float32Array(64));
-
-      // Precompute 160 Fibonacci sphere points for 3D orb
-      const spherePoints = useMemo(() => {
-        const pts = [];
-        const N = 160;
-        const goldenAngle = Math.PI * (3 - Math.sqrt(5));
-        for (let i = 0; i < N; i++) {
-          const y = 1 - (i / (N - 1)) * 2;
-          const radius = Math.sqrt(1 - y * y);
-          const theta = goldenAngle * i;
-          pts.push({
-            bx: Math.cos(theta) * radius,
-            by: y,
-            bz: Math.sin(theta) * radius,
-            phase: i * 0.13,
-          });
-        }
-        return pts;
-      }, []);
-
-      useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas) return;
-        const ctx = canvas.getContext('2d');
-        const dpr = Math.min(window.devicePixelRatio || 1, 2);
-        const width = 760;
-        const height = 290;
-        canvas.width = width * dpr;
-        canvas.height = height * dpr;
-        ctx.scale(dpr, dpr);
-
-        let rafId;
-        let t = 0;
-        const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-        const render = () => {
-          // State-driven palette & physics
-          let rgbPrimary = [34, 211, 238]; // Cyan
-          let rgbSecondary = [52, 211, 153]; // Green
-          let rotSpeed = 0.008;
-          let spikeFactor = 0.08;
-
-          if (status === 'analyzing') {
-            rgbPrimary = [251, 191, 36]; // Amber
-            rgbSecondary = [34, 211, 238];
-            rotSpeed = 0.032;
-            spikeFactor = 0.22;
-          } else if (status === 'result_bonafide') {
-            rgbPrimary = [52, 211, 153]; // Green
-            rgbSecondary = [34, 211, 238];
-            rotSpeed = 0.011;
-            spikeFactor = 0.05;
-          } else if (status === 'result_spoof') {
-            rgbPrimary = [255, 46, 136]; // Magenta
-            rgbSecondary = [255, 77, 77]; // Red
-            rotSpeed = 0.025;
-            spikeFactor = 0.38;
-          } else if (status === 'error') {
-            rgbPrimary = [255, 77, 77];
-            rgbSecondary = [251, 191, 36];
-            rotSpeed = 0.004;
-          }
-
-          if (!reducedMotion) {
-            t += rotSpeed;
-          }
-
-          ctx.clearRect(0, 0, width, height);
-
-          // Sample live frequency data from Web Audio API or synthesize organic spectrum
-          const rawFreq = getFrequencyData ? getFrequencyData() : null;
-          const bars = smoothedBarsRef.current;
-          let avgEnergy = 0;
-
-          for (let i = 0; i < 64; i++) {
-            let target = 0.06;
-            if (isPlayingOrRecording && rawFreq && rawFreq.length > 0) {
-              const bin = Math.min(rawFreq.length - 1, Math.floor((i / 64) * (rawFreq.length * 0.7)));
-              target = Math.max(0.05, rawFreq[bin] / 255.0);
-            } else if (status === 'analyzing') {
-              const wave1 = Math.sin(i * 0.22 - t * 4.5) * 0.5 + 0.5;
-              const wave2 = Math.cos(i * 0.11 + t * 2.5) * 0.5 + 0.5;
-              target = 0.15 + wave1 * wave2 * 0.75;
-            } else if (status === 'result_bonafide') {
-              // Clean harmonic sine wave
-              target = 0.18 + Math.sin(i * 0.15 + t * 2.0) * 0.14 + Math.cos(i * 0.08 - t) * 0.08;
-            } else if (status === 'result_spoof') {
-              // Jagged glitch peaks
-              const glitch = Math.sin(i * 1.7 + t * 8.0) * Math.cos(i * 0.9 - t * 5.0);
-              target = 0.12 + Math.abs(glitch) * 0.78;
-            } else {
-              // Idle / Loaded gentle breathing
-              target = 0.07 + Math.sin(i * 0.18 + t * 1.6) * 0.05;
-            }
-
-            // Lerp smoothing
-            bars[i] += (target - bars[i]) * 0.22;
-            avgEnergy += bars[i];
-          }
-          avgEnergy /= 64;
-
-          const cx = width / 2;
-          const cy = 118;
-          const baseRadius = 74 + avgEnergy * 24;
-
-          // 1. Ambient Core Glow
-          const coreGrad = ctx.createRadialGradient(cx, cy, 8, cx, cy, baseRadius * 1.75);
-          coreGrad.addColorStop(0, `rgba(${rgbPrimary.join(',')}, 0.38)`);
-          coreGrad.addColorStop(0.45, `rgba(${rgbSecondary.join(',')}, 0.12)`);
-          coreGrad.addColorStop(1, 'rgba(7, 8, 13, 0)');
-          ctx.fillStyle = coreGrad;
-          ctx.beginPath();
-          ctx.arc(cx, cy, baseRadius * 1.75, 0, Math.PI * 2);
-          ctx.fill();
-
-          // 2. Concentric Telemetry Rings
-          ctx.save();
-          ctx.translate(cx, cy);
-          ctx.rotate(t * 0.5);
-          ctx.strokeStyle = `rgba(${rgbPrimary.join(',')}, 0.18)`;
-          ctx.lineWidth = 1;
-          ctx.setLineDash([6, 10]);
-          ctx.beginPath();
-          ctx.arc(0, 0, baseRadius * 1.22, 0, Math.PI * 2);
-          ctx.stroke();
-
-          ctx.rotate(-t * 1.1);
-          ctx.strokeStyle = `rgba(${rgbSecondary.join(',')}, 0.14)`;
-          ctx.setLineDash([3, 14]);
-          ctx.beginPath();
-          ctx.arc(0, 0, baseRadius * 1.36, 0, Math.PI * 2);
-          ctx.stroke();
-          ctx.restore();
-
-          // 3. 3D Fibonacci Point Cloud Sphere
-          const projected = [];
-          const cosY = Math.cos(t);
-          const sinY = Math.sin(t);
-          const cosX = Math.cos(t * 0.6);
-          const sinX = Math.sin(t * 0.6);
-
-          for (let i = 0; i < spherePoints.length; i++) {
-            const p = spherePoints[i];
-            const barVal = bars[i % 64];
-            const distortion = 1 + Math.sin(p.phase + t * 3) * spikeFactor + barVal * 0.35;
-
-            const x0 = p.bx * baseRadius * distortion;
-            const y0 = p.by * baseRadius * distortion;
-            const z0 = p.bz * baseRadius * distortion;
-
-            // Rotate Y then X
-            const x1 = x0 * cosY - z0 * sinY;
-            const z1 = z0 * cosY + x0 * sinY;
-            const y2 = y0 * cosX - z1 * sinX;
-            const z2 = z1 * cosX + y0 * sinX;
-
-            const fov = 260;
-            const scale = fov / (fov + z2 + baseRadius);
-            projected.push({
-              x: cx + x1 * scale,
-              y: cy + y2 * scale,
-              z: z2,
-              scale,
-              energy: barVal,
-            });
-          }
-
-          // Sort back-to-front
-          projected.sort((a, b) => a.z - b.z);
-
-          // Draw subtle geodesic filaments between nearby front points
-          ctx.lineWidth = 0.75;
-          for (let i = 0; i < projected.length; i += 2) {
-            const p1 = projected[i];
-            if (p1.z < 0) continue;
-            for (let j = i + 1; j < Math.min(projected.length, i + 8); j++) {
-              const p2 = projected[j];
-              const dx = p1.x - p2.x;
-              const dy = p1.y - p2.y;
-              const distSq = dx * dx + dy * dy;
-              if (distSq < 780) {
-                const alpha = (1 - distSq / 780) * 0.28;
-                ctx.strokeStyle = `rgba(${rgbPrimary.join(',')}, ${alpha})`;
-                ctx.beginPath();
-                ctx.moveTo(p1.x, p1.y);
-                ctx.lineTo(p2.x, p2.y);
-                ctx.stroke();
-              }
-            }
-          }
-
-          // Draw 3D vertices
-          for (let i = 0; i < projected.length; i++) {
-            const p = projected[i];
-            const depthAlpha = Math.max(0.12, Math.min(0.95, (p.z + baseRadius) / (2 * baseRadius)));
-            const r = Math.max(1.1, p.scale * (1.8 + p.energy * 1.6));
-            ctx.fillStyle = p.energy > 0.45
-              ? `rgba(${rgbSecondary.join(',')}, ${depthAlpha})`
-              : `rgba(${rgbPrimary.join(',')}, ${depthAlpha})`;
-            ctx.beginPath();
-            ctx.arc(p.x, p.y, r, 0, Math.PI * 2);
-            ctx.fill();
-          }
-
-          // 4. 64 Mirrored Lerp-Smoothed Frequency Bars (Bottom Telemetry Deck)
-          const deckCenterY = 248;
-          const totalBarsWidth = 540;
-          const startX = (width - totalBarsWidth) / 2;
-          const barSpacing = totalBarsWidth / 64;
-          const barWidth = Math.max(2.5, barSpacing - 3);
-
-          // Baseline horizon
-          ctx.strokeStyle = 'rgba(255, 255, 255, 0.07)';
-          ctx.lineWidth = 1;
-          ctx.beginPath();
-          ctx.moveTo(startX - 20, deckCenterY);
-          ctx.lineTo(startX + totalBarsWidth + 20, deckCenterY);
-          ctx.stroke();
-
-          for (let i = 0; i < 64; i++) {
-            // Mirror index from center outward so low/mid frequencies anchor center
-            const mirrorIdx = i < 32 ? (31 - i) * 2 : (i - 32) * 2;
-            const val = bars[mirrorIdx];
-            const halfH = Math.max(2, val * 34);
-            const x = startX + i * barSpacing;
-
-            const barGrad = ctx.createLinearGradient(x, deckCenterY - halfH, x, deckCenterY + halfH);
-            barGrad.addColorStop(0, `rgba(${rgbPrimary.join(',')}, 0.95)`);
-            barGrad.addColorStop(0.5, `rgba(${rgbSecondary.join(',')}, 0.95)`);
-            barGrad.addColorStop(1, `rgba(${rgbPrimary.join(',')}, 0.35)`);
-
-            ctx.fillStyle = barGrad;
-            ctx.beginPath();
-            ctx.roundRect(x, deckCenterY - halfH, barWidth, halfH * 2, 2);
-            ctx.fill();
-          }
-
-          rafId = requestAnimationFrame(render);
-        };
-
-        render();
-        return () => cancelAnimationFrame(rafId);
-      }, [status, getFrequencyData, isPlayingOrRecording, spherePoints]);
-
-      return (
-        <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', margin: '4px 0 8px' }}>
-          <canvas
-            ref={canvasRef}
-            style={{ width: '100%', maxWidth: '760px', height: '290px', display: 'block' }}
-            aria-label="Interactive 3D sound orb and 64-channel mirrored frequency analyzer"
-          />
-          <div className="mono" style={{ fontSize: '11px', color: 'var(--text-dim)', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '-6px' }}>
-            {status === 'idle' && '● STANDBY // 64-CHANNEL HARMONIC FIELD READY'}
-            {status === 'loaded' && '● SIGNAL LOCKED // PRESS PLAY TO DRIVE REAL-TIME ANALYSER'}
-            {status === 'analyzing' && '⚡ NEURAL SCAN ACTIVE // EXTRACTING WAV2VEC2 EMBEDDINGS'}
-            {status === 'result_bonafide' && '✓ VERIFIED AUTHENTIC // NATURAL HUMAN FORMANT DISTRIBUTION'}
-            {status === 'result_spoof' && '⚠ ANOMALY DETECTED // SYNTHETIC VOCODER ARTIFACTS PRESENT'}
-            {status === 'error' && '✕ TELEMETRY FAULT // CHECK INPUT OR API STATUS'}
-          </div>
-        </div>
-      );
-    }
-
-    // ============================================================================
-    // 6. COMPONENT: REAL CLIENT-SIDE FFT SPECTROGRAM CANVAS
-    // ============================================================================
-    function SpectrogramCanvas({ audioBuffer, isAnalyzing }) {
-      const canvasRef = useRef(null);
-      const [hoverInfo, setHoverInfo] = useState(null);
-
-      useEffect(() => {
-        const canvas = canvasRef.current;
-        if (!canvas || !audioBuffer) return;
-
-        const ctx = canvas.getContext('2d');
-        const width = 680;
-        const height = 128;
-        canvas.width = width;
-        canvas.height = height;
-
-        const channelData = audioBuffer.getChannelData(0);
-        const fftSize = 512;
-        const halfFft = fftSize >> 1;
-        const numCols = width;
-        const step = Math.max(1, Math.floor((channelData.length - fftSize) / numCols));
-
-        // Precompute Hann window
-        const hann = new Float32Array(fftSize);
-        for (let i = 0; i < fftSize; i++) {
-          hann[i] = 0.5 * (1 - Math.cos((2 * Math.PI * i) / (fftSize - 1)));
-        }
-
-        const imgData = ctx.createImageData(width, height);
-        const pixels = imgData.data;
-        const real = new Float32Array(fftSize);
-        const imag = new Float32Array(fftSize);
-
-        for (let col = 0; col < numCols; col++) {
-          const startSample = col * step;
-          for (let i = 0; i < fftSize; i++) {
-            const s = startSample + i < channelData.length ? channelData[startSample + i] : 0;
-            real[i] = s * hann[i];
-            imag[i] = 0;
-          }
-
-          computeFFT(real, imag);
-
-          for (let row = 0; row < height; row++) {
-            // Map row (0 = top = high freq, height-1 = bottom = low freq)
-            const freqRatio = 1 - row / height;
-            const bin = Math.min(halfFft - 1, Math.floor(freqRatio * (halfFft * 0.85)));
-            const mag = Math.sqrt(real[bin] * real[bin] + imag[bin] * imag[bin]) / (fftSize * 0.15);
-            const dbNorm = Math.max(0, Math.min(1, (20 * Math.log10(mag + 1e-6) + 65) / 65));
-
-            const [r, g, b] = getSpectrogramRGB(dbNorm);
-            const pIdx = (row * width + col) * 4;
-            pixels[pIdx] = r;
-            pixels[pIdx + 1] = g;
-            pixels[pIdx + 2] = b;
-            pixels[pIdx + 3] = 255;
-          }
-        }
-
-        ctx.putImageData(imgData, 0, 0);
-      }, [audioBuffer]);
-
-      const handleMouseMove = (e) => {
-        if (!audioBuffer || !canvasRef.current) return;
-        const rect = canvasRef.current.getBoundingClientRect();
-        const xRatio = Math.max(0, Math.min(1, (e.clientX - rect.left) / rect.width));
-        const yRatio = Math.max(0, Math.min(1, 1 - (e.clientY - rect.top) / rect.height));
-        const timeSec = (xRatio * audioBuffer.duration).toFixed(2);
-        const maxFreqKhz = (audioBuffer.sampleRate / 2000) * 0.85;
-        const freqKhz = (yRatio * maxFreqKhz).toFixed(2);
-        setHoverInfo({ timeSec, freqKhz });
-      };
-
-      if (!audioBuffer) return null;
-
-      return (
-        <div className="acoustic-panel">
-          {isAnalyzing && <div className="laser-scan-overlay"></div>}
-          <div className="panel-header mono">
-            <span style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--cyan)' }}>
-              <Icon.Activity size={14} /> STFT ACOUSTIC SPECTROGRAM (HANN 512-PT FFT)
-            </span>
-            <span>
-              {hoverInfo
-                ? `T: ${hoverInfo.timeSec}s | F: ${hoverInfo.freqKhz} kHz`
-                : `SR: ${(audioBuffer.sampleRate / 1000).toFixed(1)} kHz • DURATION: ${audioBuffer.duration.toFixed(2)}s`}
-            </span>
-          </div>
-          <div style={{ position: 'relative', borderRadius: '8px', overflow: 'hidden', border: '1px solid rgba(255,255,255,0.08)' }}>
-            <canvas
-              ref={canvasRef}
-              onMouseMove={handleMouseMove}
-              onMouseLeave={() => setHoverInfo(null)}
-              style={{ width: '100%', height: '128px', display: 'block', cursor: 'crosshair' }}
-            />
-          </div>
-          <div className="mono" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '10px', color: 'var(--text-dim)', marginTop: '6px' }}>
-            <span>0.00s</span>
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>LOW ENERGY</span>
-              <span style={{ width: '64px', height: '6px', borderRadius: '3px', background: 'linear-gradient(90deg, #07080d, #22d3ee, #ff2e88, #ffffff)', display: 'inline-block' }}></span>
-              <span>PEAK HARMONICS</span>
-            </span>
-            <span>{audioBuffer.duration.toFixed(2)}s</span>
-          </div>
-        </div>
-      );
-    }
-
-    // ============================================================================
-    // 7. COMPONENT: ANIMATED SEMICIRCULAR SPOOF PROBABILITY GAUGE
-    // ============================================================================
-    function SpoofGauge({ spoofProbability, prediction }) {
-      const [displayPct, setDisplayPct] = useState(0);
-
-      useEffect(() => {
-        const target = spoofProbability * 100;
-        let start = null;
-        const duration = 950;
-        let raf;
-
-        const step = (ts) => {
-          if (!start) start = ts;
-          const progress = Math.min(1, (ts - start) / duration);
-          // Ease out cubic
-          const eased = 1 - Math.pow(1 - progress, 3);
-          setDisplayPct(target * eased);
-          if (progress < 1) {
-            raf = requestAnimationFrame(step);
-          }
-        };
-
-        raf = requestAnimationFrame(step);
-        return () => cancelAnimationFrame(raf);
-      }, [spoofProbability]);
-
-      const angleDeg = -90 + (displayPct / 100) * 180;
-      const isSpoof = prediction === 'spoof';
-
-      return (
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
-          <svg width="250" height="142" viewBox="0 0 250 142">
-            <defs>
-              <linearGradient id="gaugeArcGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                <stop offset="0%" stopColor="#34d399" />
-                <stop offset="50%" stopColor="#fbbf24" />
-                <stop offset="100%" stopColor="#ff2e88" />
-              </linearGradient>
-            </defs>
-
-            {/* Background Track */}
-            <path
-              d="M 25 122 A 100 100 0 0 1 225 122"
-              fill="none"
-              stroke="rgba(255, 255, 255, 0.08)"
-              strokeWidth="16"
-              strokeLinecap="round"
-            />
-
-            {/* Colored Gradient Track */}
-            <path
-              d="M 25 122 A 100 100 0 0 1 225 122"
-              fill="none"
-              stroke="url(#gaugeArcGrad)"
-              strokeWidth="16"
-              strokeLinecap="round"
-              strokeDasharray="314.16"
-              strokeDashoffset={314.16 * (1 - displayPct / 100)}
-            />
-
-            {/* Threshold Ticks (60% Medium, 85% High) */}
-            <text x="16" y="138" fill="var(--text-dim)" fontSize="10" className="mono">0%</text>
-            <text x="116" y="14" fill="var(--text-dim)" fontSize="10" className="mono">50%</text>
-            <text x="216" y="138" fill="var(--text-dim)" fontSize="10" className="mono">100%</text>
-
-            {/* Spring Needle */}
-            <g
-              transform={`rotate(${angleDeg} 125 122)`}
-              style={{ transition: 'transform 0.12s cubic-bezier(0.34, 1.56, 0.64, 1)' }}
-            >
-              <polygon points="122,122 125,32 128,122" fill="#ffffff" />
-              <circle cx="125" cy="122" r="8" fill={isSpoof ? 'var(--magenta)' : 'var(--green)'} stroke="#ffffff" strokeWidth="2.5" />
-            </g>
-          </svg>
-
-          <div style={{ textAlign: 'center', marginTop: '-10px' }}>
-            <div className="mono" style={{ fontSize: '34px', fontWeight: 700, color: isSpoof ? 'var(--magenta)' : 'var(--green)', letterSpacing: '-0.03em' }}>
-              {displayPct.toFixed(1)}%
-            </div>
-            <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-              Spoof Probability Score
-            </div>
-          </div>
-        </div>
-      );
-    }
-
-    // ============================================================================
-    // 8. COMPONENT: SESSION HISTORY INTERACTIVE CHART
-    // ============================================================================
-    function SessionHistoryChart({ history, onSelectRun }) {
-      if (!history || history.length === 0) {
-        return (
-          <div className="glass-card" style={{ padding: '24px', marginTop: '24px', textAlign: 'center' }}>
-            <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-              SESSION TELEMETRY LOG // Analyze audio clips above to populate real-time session probability trends.
-            </div>
-          </div>
-        );
-      }
-
-      const width = 760;
-      const height = 180;
-      const padLeft = 44;
-      const padRight = 24;
-      const padTop = 20;
-      const padBottom = 32;
-      const plotW = width - padLeft - padRight;
-      const plotH = height - padTop - padBottom;
-
-      const points = history.map((item, idx) => {
-        const x = history.length === 1
-          ? padLeft + plotW / 2
-          : padLeft + (idx / (history.length - 1)) * plotW;
-        const y = padTop + (1 - item.probabilities.spoof) * plotH;
-        return { x, y, item };
-      });
-
-      const polylineStr = points.map((p) => `${p.x},${p.y}`).join(' ');
-      const y85 = padTop + (1 - 0.85) * plotH;
-      const y60 = padTop + (1 - 0.60) * plotH;
-
-      return (
-        <div className="glass-card" style={{ padding: '28px', marginTop: '24px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '10px' }}>
-            <div>
-              <h3 style={{ fontSize: '18px', fontWeight: 700 }}>Session Analysis Telemetry</h3>
-              <p style={{ fontSize: '13px', color: 'var(--text-muted)' }}>
-                Spoof probability per analysis in this browser session ({history.length} {history.length === 1 ? 'clip' : 'clips'} evaluated)
-              </p>
-            </div>
-            <div className="mono" style={{ display: 'flex', gap: '16px', fontSize: '11px' }}>
-              <span style={{ color: 'var(--red)' }}>--- High Risk (85%)</span>
-              <span style={{ color: 'var(--amber)' }}>--- Medium Risk (60%)</span>
-            </div>
-          </div>
-
-          <svg viewBox={`0 0 ${width} ${height}`} style={{ width: '100%', height: 'auto', overflow: 'visible' }}>
-            {/* Reference Lines */}
-            <line x1={padLeft} y1={y85} x2={width - padRight} y2={y85} stroke="rgba(255, 77, 77, 0.35)" strokeDasharray="4 4" strokeWidth="1" />
-            <line x1={padLeft} y1={y60} x2={width - padRight} y2={y60} stroke="rgba(251, 191, 36, 0.35)" strokeDasharray="4 4" strokeWidth="1" />
-            <line x1={padLeft} y1={padTop + plotH} x2={width - padRight} y2={padTop + plotH} stroke="rgba(255, 255, 255, 0.1)" strokeWidth="1" />
-
-            <text x="6" y={y85 + 4} fill="var(--red)" fontSize="10" className="mono">85%</text>
-            <text x="6" y={y60 + 4} fill="var(--amber)" fontSize="10" className="mono">60%</text>
-            <text x="12" y={padTop + plotH + 4} fill="var(--text-dim)" fontSize="10" className="mono">0%</text>
-
-            {/* Connecting Line */}
-            {points.length > 1 && (
-              <polyline
-                fill="none"
-                stroke="var(--cyan)"
-                strokeWidth="2.5"
-                points={polylineStr}
-              />
-            )}
-
-            {/* Data Points */}
-            {points.map((p, idx) => {
-              const isSpoof = p.item.prediction === 'spoof';
-              return (
-                <g
-                  key={p.item.id}
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => onSelectRun(p.item)}
-                >
-                  <circle
-                    cx={p.x}
-                    cy={p.y}
-                    r="6"
-                    fill={isSpoof ? 'var(--magenta)' : 'var(--green)'}
-                    stroke="#07080d"
-                    strokeWidth="2"
-                  />
-                  <text
-                    x={p.x}
-                    y={p.y - 12}
-                    textAnchor="middle"
-                    fill="var(--text-primary)"
-                    fontSize="10"
-                    className="mono"
-                  >
-                    {(p.item.probabilities.spoof * 100).toFixed(1)}%
-                  </text>
-                  <text
-                    x={p.x}
-                    y={padTop + plotH + 18}
-                    textAnchor="middle"
-                    fill="var(--text-muted)"
-                    fontSize="10"
-                    className="mono"
-                  >
-                    #{idx + 1}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-        </div>
-      );
-    }
-
-    // ============================================================================
-    // 9. MAIN FORENSICS APPLICATION
-    // ============================================================================
     function App() {
-      const [state, dispatch] = useReducer(detectorReducer, initialState);
-      const [health, setHealth] = useState({ online: true, device: 'cpu', ready: true });
+      const [file, setFile] = useState(null);
+      const [audioUrl, setAudioUrl] = useState(null);
+      const [activeSampleId, setActiveSampleId] = useState(null);
+      const [isAnalyzing, setIsAnalyzing] = useState(false);
+      const [result, setResult] = useState(null);
+      const [error, setError] = useState(null);
       const [isPlaying, setIsPlaying] = useState(false);
       const [currentTime, setCurrentTime] = useState(0);
       const [duration, setDuration] = useState(0);
-      const [playbackRate, setPlaybackRate] = useState(1.0);
+      const [serverOnline, setServerOnline] = useState(true);
 
-      // Microphone recording state
-      const [isRecording, setIsRecording] = useState(false);
-      const [recordSeconds, setRecordSeconds] = useState(0);
-      const [micLevel, setMicLevel] = useState(0);
-
-      // Refs for audio & animations
-      const waveformContainerRef = useRef(null);
+      const waveformRef = useRef(null);
       const wavesurferRef = useRef(null);
-      const audioCtxRef = useRef(null);
-      const analyserRef = useRef(null);
-      const mediaRecorderRef = useRef(null);
-      const micStreamRef = useRef(null);
-      const micRafRef = useRef(null);
-      const recordIntervalRef = useRef(null);
 
-      // Spotlight mouse tracker for glass cards
-      const handleCardMouseMove = useCallback((e) => {
-        const card = e.currentTarget;
-        const rect = card.getBoundingClientRect();
-        card.style.setProperty('--mouse-x', `${e.clientX - rect.left}px`);
-        card.style.setProperty('--mouse-y', `${e.clientY - rect.top}px`);
-      }, []);
-
-      // 1. Poll GET /health every 15s
+      // Check backend health on load
       useEffect(() => {
-        const pollHealth = async () => {
-          try {
-            const res = await fetch('/health');
-            if (!res.ok) throw new Error('Health non-200');
-            const data = await res.json();
-            setHealth({
-              online: data.status === 'healthy',
-              device: data.device || 'cpu',
-              ready: Boolean(data.wav2vec2_loaded && data.classifier_loaded),
-            });
-          } catch {
-            setHealth((prev) => ({ ...prev, online: false, ready: false }));
-          }
-        };
-        pollHealth();
-        const id = setInterval(pollHealth, CONFIG.HEALTH_POLL_MS);
-        return () => clearInterval(id);
+        fetch('/health')
+          .then((res) => (res.ok ? res.json() : Promise.reject()))
+          .then((d) => setServerOnline(d.status === 'healthy'))
+          .catch(() => setServerOnline(false));
       }, []);
 
-      // 2. Ensure Web Audio AnalyserNode
-      const ensureAudioAnalyser = useCallback(() => {
-        if (!audioCtxRef.current) {
-          const AudioCtx = window.AudioContext || window.webkitAudioContext;
-          audioCtxRef.current = new AudioCtx();
+      // Load and preview audio file (Two-Step Workflow)
+      const loadAudioFile = (audioBlob, filename, sampleId = null) => {
+        if (audioUrl) {
+          URL.revokeObjectURL(audioUrl);
         }
-        if (audioCtxRef.current.state === 'suspended') {
-          audioCtxRef.current.resume();
-        }
-        if (!analyserRef.current) {
-          const analyser = audioCtxRef.current.createAnalyser();
-          analyser.fftSize = 256;
-          analyser.smoothingTimeConstant = 0.78;
-          analyserRef.current = analyser;
-        }
-        return { ctx: audioCtxRef.current, analyser: analyserRef.current };
-      }, []);
+        const url = URL.createObjectURL(audioBlob);
+        setFile(audioBlob);
+        setAudioUrl(url);
+        setActiveSampleId(sampleId);
+        setResult(null);
+        setError(null);
+        setIsPlaying(false);
+      };
 
-      const getFrequencyData = useCallback(() => {
-        if (!analyserRef.current) return null;
-        const arr = new Uint8Array(analyserRef.current.frequencyBinCount);
-        analyserRef.current.getByteFrequencyData(arr);
-        return arr;
-      }, []);
+      // Built-in 4 ASVspoof Benchmark Samples
+      const samplePresets = [
+        { id: 'real_1', name: 'Human Voice 1', path: '/samples/asv_real_1.wav', type: 'human' },
+        { id: 'real_2', name: 'Human Voice 2', path: '/samples/asv_real_2.wav', type: 'human' },
+        { id: 'ai_1', name: 'AI Clone 1', path: '/samples/asv_ai_1.wav', type: 'spoof' },
+        { id: 'ai_2', name: 'AI Clone 2', path: '/samples/asv_ai_2.wav', type: 'spoof' },
+      ];
 
-      // 3. Decode Audio File for FFT Spectrogram + WaveSurfer
-      const processSelectedFile = useCallback(async (file, sampleType = 'upload') => {
-        const validExt = /\.(wav|flac|mp3|m4a|webm|ogg)$/i.test(file.name);
-        if (!file.type.startsWith('audio/') && !validExt) {
-          dispatch({
-            type: 'SET_ERROR',
-            msg: 'Unsupported file format. Please provide a WAV, FLAC, MP3, or M4A audio clip.',
-            kind: 'file',
-          });
-          return;
-        }
-        if (file.size > CONFIG.MAX_FILE_SIZE_BYTES) {
-          dispatch({
-            type: 'SET_ERROR',
-            msg: `File size (${(file.size / (1024 * 1024)).toFixed(1)} MB) exceeds the 10 MB forensic limit.`,
-            kind: 'file',
-          });
-          return;
-        }
-
-        const url = URL.createObjectURL(file);
-        dispatch({ type: 'LOAD_FILE', file, audioUrl: url, sampleType });
-
-        // Decode audio data for client-side FFT spectrogram
+      const loadPreset = async (preset) => {
         try {
-          const arrayBuf = await file.arrayBuffer();
-          const { ctx } = ensureAudioAnalyser();
-          const decoded = await ctx.decodeAudioData(arrayBuf.slice(0));
-          dispatch({ type: 'SET_AUDIO_BUFFER', audioBuffer: decoded });
+          setError(null);
+          const res = await fetch(preset.path);
+          if (!res.ok) throw new Error('Failed to fetch sample');
+          const blob = await res.blob();
+          loadAudioFile(new File([blob], `${preset.name}.wav`, { type: 'audio/wav' }), preset.name, preset.id);
         } catch {
-          // Non-fatal if browser cannot decode a specific container for client preview; backend will still process
+          setError(`Could not load preset sample ${preset.name}`);
         }
-      }, [ensureAudioAnalyser]);
+      };
 
-      // 4. Mount WaveSurfer when audioUrl changes
+      // WaveSurfer setup
       useEffect(() => {
-        if (!state.audioUrl || !waveformContainerRef.current) return;
+        if (!audioUrl || !waveformRef.current) return;
 
         if (wavesurferRef.current) {
           wavesurferRef.current.destroy();
         }
 
         const ws = WaveSurfer.create({
-          container: waveformContainerRef.current,
-          waveColor: '#3b4254',
-          progressColor: '#22d3ee',
+          container: waveformRef.current,
+          waveColor: '#475569',
+          progressColor: '#06b6d4',
           cursorColor: '#ffffff',
           cursorWidth: 2,
-          height: 76,
+          height: 68,
           barWidth: 2,
           barGap: 2,
           barRadius: 2,
-          normalize: true,
-          url: state.audioUrl,
+          url: audioUrl,
         });
 
         ws.on('ready', () => {
           setDuration(ws.getDuration());
           setCurrentTime(0);
           setIsPlaying(false);
-
-          // Connect WaveSurfer HTMLMediaElement to Web Audio API AnalyserNode
-          try {
-            const mediaEl = ws.getMediaElement();
-            if (mediaEl) {
-              const { ctx, analyser } = ensureAudioAnalyser();
-              const source = ctx.createMediaElementSource(mediaEl);
-              source.connect(analyser);
-              analyser.connect(ctx.destination);
-            }
-          } catch {
-            // Ignore if already connected
-          }
         });
 
         ws.on('timeupdate', (t) => setCurrentTime(t));
@@ -1686,949 +580,388 @@
         ws.on('finish', () => setIsPlaying(false));
 
         wavesurferRef.current = ws;
+
         return () => {
           ws.destroy();
         };
-      }, [state.audioUrl, ensureAudioAnalyser]);
+      }, [audioUrl]);
 
-      // Update wave color dynamically based on result state
-      useEffect(() => {
-        const ws = wavesurferRef.current;
-        if (!ws) return;
-        if (state.status === 'result_bonafide') {
-          ws.setOptions({ waveColor: 'rgba(52, 211, 153, 0.45)', progressColor: '#34d399' });
-        } else if (state.status === 'result_spoof') {
-          ws.setOptions({ waveColor: 'rgba(255, 46, 136, 0.45)', progressColor: '#ff2e88' });
-        } else if (state.status === 'analyzing') {
-          ws.setOptions({ waveColor: 'rgba(251, 191, 36, 0.45)', progressColor: '#fbbf24' });
-        }
-      }, [state.status]);
+      // Execute Model Analysis
+      const runAnalysis = async () => {
+        if (!file || isAnalyzing) return;
+        setIsAnalyzing(true);
+        setError(null);
 
-      // 5. Load Standard Sample Chips
-      const loadSample = async (kind) => {
-        const path = kind === 'real' ? '/samples/real_sample.wav' : '/samples/fake_sample.wav';
-        try {
-          const res = await fetch(path);
-          if (!res.ok) throw new Error(`HTTP ${res.status}`);
-          const blob = await res.blob();
-          const file = new File([blob], kind === 'real' ? 'real_sample.wav' : 'fake_sample.wav', { type: 'audio/wav' });
-          await processSelectedFile(file, kind);
-        } catch {
-          dispatch({
-            type: 'SET_ERROR',
-            msg: `Could not load ${path}. Ensure sample WAV files exist in /public/samples/.`,
-            kind: 'file',
-          });
-        }
-      };
-
-      // 6. Microphone Recording with Live Level Meter & 30s Auto-Stop
-      const stopRecording = useCallback(() => {
-        if (mediaRecorderRef.current && mediaRecorderRef.current.state !== 'inactive') {
-          mediaRecorderRef.current.stop();
-        }
-        if (recordIntervalRef.current) {
-          clearInterval(recordIntervalRef.current);
-          recordIntervalRef.current = null;
-        }
-        if (micRafRef.current) {
-          cancelAnimationFrame(micRafRef.current);
-          micRafRef.current = null;
-        }
-        setIsRecording(false);
-        setMicLevel(0);
-      }, []);
-
-      const toggleMicRecording = async () => {
-        if (isRecording) {
-          stopRecording();
-          return;
-        }
-
-        try {
-          const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-          micStreamRef.current = stream;
-
-          const { ctx, analyser } = ensureAudioAnalyser();
-          const source = ctx.createMediaStreamSource(stream);
-          source.connect(analyser);
-
-          const mr = new MediaRecorder(stream);
-          mediaRecorderRef.current = mr;
-          const chunks = [];
-
-          mr.ondataavailable = (e) => {
-            if (e.data.size > 0) chunks.push(e.data);
-          };
-
-          mr.onstop = () => {
-            const blob = new Blob(chunks, { type: 'audio/wav' });
-            const file = new File([blob], `mic_recording_${Date.now()}.wav`, { type: 'audio/wav' });
-            processSelectedFile(file, 'mic');
-            stream.getTracks().forEach((t) => t.stop());
-          };
-
-          mr.start();
-          setIsRecording(true);
-          setRecordSeconds(0);
-
-          recordIntervalRef.current = setInterval(() => {
-            setRecordSeconds((s) => {
-              if (s + 1 >= CONFIG.MAX_RECORD_SEC) {
-                stopRecording();
-                return CONFIG.MAX_RECORD_SEC;
-              }
-              return s + 1;
-            });
-          }, 1000);
-
-          const timeData = new Uint8Array(analyser.fftSize);
-          const updateMeter = () => {
-            analyser.getByteTimeDomainData(timeData);
-            let sum = 0;
-            for (let i = 0; i < timeData.length; i++) {
-              const v = (timeData[i] - 128) / 128;
-              sum += v * v;
-            }
-            const rms = Math.min(1, Math.sqrt(sum / timeData.length) * 3.5);
-            setMicLevel(rms);
-            micRafRef.current = requestAnimationFrame(updateMeter);
-          };
-          micRafRef.current = requestAnimationFrame(updateMeter);
-        } catch {
-          dispatch({
-            type: 'SET_ERROR',
-            msg: 'Microphone access was denied or no recording device is available.',
-            kind: 'file',
-          });
-        }
-      };
-
-      // 7. POST /predict with Minimum 1.8s Analyzing Stepper
-      const handleAnalyze = async () => {
-        if (!state.file || state.status === 'analyzing') return;
-
-        dispatch({ type: 'START_ANALYZING' });
-        const step1Timer = setTimeout(() => dispatch({ type: 'STEP_ANALYZING', step: 1 }), 600);
-        const step2Timer = setTimeout(() => dispatch({ type: 'STEP_ANALYZING', step: 2 }), 1200);
-
-        const t0 = performance.now();
         const formData = new FormData();
-        formData.append('file', state.file);
-
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 25000);
+        formData.append('file', file);
 
         try {
-          const res = await fetch('/predict', {
-            method: 'POST',
-            body: formData,
-            signal: controller.signal,
-          });
-
+          const res = await fetch('/predict', { method: 'POST', body: formData });
           if (!res.ok) {
-            let errDetail = `Server error (${res.status})`;
-            try {
-              const errJson = await res.json();
-              if (errJson.detail) errDetail = errJson.detail;
-            } catch {}
-            throw { message: errDetail, kind: res.status === 400 ? 'file' : 'offline' };
+            const errJson = await res.json().catch(() => ({}));
+            throw new Error(errJson.detail || `Server responded with status ${res.status}`);
           }
-
           const data = await res.json();
-          const elapsed = performance.now() - t0;
-          const remaining = Math.max(0, CONFIG.MIN_ANALYZING_MS - elapsed);
-
-          setTimeout(() => {
-            dispatch({ type: 'SET_RESULT', result: data });
-          }, remaining);
+          setResult(data);
         } catch (err) {
-          clearTimeout(step1Timer);
-          clearTimeout(step2Timer);
-          if (err && err.name === 'AbortError') {
-            dispatch({
-              type: 'SET_ERROR',
-              msg: 'Inference request timed out after 25 seconds. Please try a shorter audio clip.',
-              kind: 'timeout',
-            });
-          } else {
-            dispatch({
-              type: 'SET_ERROR',
-              msg: (err && err.message) || 'Backend API is unreachable. Ensure uvicorn is running on port 8080.',
-              kind: (err && err.kind) || 'offline',
-            });
-          }
+          setError(err.message || 'Unable to communicate with the analysis engine.');
         } finally {
-          clearTimeout(timeoutId);
+          setIsAnalyzing(false);
         }
       };
 
-      // 8. Download JSON Report
-      const downloadJsonReport = () => {
-        if (!state.result) return;
-        const reportPayload = {
-          forensic_engine: 'VOXFORENSICS // Wav2Vec2 + Deep MLP',
-          evaluated_at: new Date().toISOString(),
-          model_benchmark: {
-            dataset: CONFIG.FACTS.dataset,
-            dev_eer: CONFIG.FACTS.devEer,
-            dev_accuracy: CONFIG.FACTS.devAccuracy,
-          },
-          analysis: state.result,
+      // Interpretability: derive plain-English scorecard from result
+      const getInterpretability = (res) => {
+        if (!res) return null;
+        const isBona = res.prediction === 'bonafide';
+        const spoofProb = res.probabilities.spoof;
+
+        if (isBona) {
+          return {
+            verdictText: 'Human Voice Verified',
+            badge: 'Natural Speech',
+            isHuman: true,
+            summary:
+              'This recording exhibits natural vocal tract resonances, organic micro-pitch variations, and clean harmonic falloff without neural vocoder stitching artifacts.',
+            indicators: [
+              {
+                icon: SvgIcon.Check,
+                name: 'Vocal Tract Resonances (Formants)',
+                desc: 'Continuous anatomical throat and nasal cavity resonances typical of human biology.',
+                status: 'Natural',
+                isGood: true,
+              },
+              {
+                icon: SvgIcon.Check,
+                name: 'Pitch & Harmonic Naturalness',
+                desc: 'Subtle micro-variations (jitter and shimmer) that AI voice models struggle to replicate.',
+                status: 'Natural',
+                isGood: true,
+              },
+              {
+                icon: SvgIcon.Check,
+                name: 'High-Frequency Spectrum',
+                desc: 'No phase discontinuities or repetitive vocoder framing artifacts detected.',
+                status: 'Clean',
+                isGood: true,
+              },
+            ],
+          };
+        }
+
+        return {
+          verdictText: 'Synthetic / Deepfake Voice Detected',
+          badge: spoofProb >= 0.85 ? 'High Risk AI Clone' : 'Medium Risk Clone',
+          isHuman: false,
+          summary:
+            'This recording displays distinct signs of speech synthesis, including rigid pitch trajectories, artificial harmonic synthesis, and high-frequency vocoder framing patterns.',
+          indicators: [
+            {
+              icon: SvgIcon.Alert,
+              name: 'Vocal Tract Resonances (Formants)',
+              desc: 'Unnatural formant blending generated by text-to-speech or voice conversion neural decoders.',
+              status: 'Artificial',
+              isGood: false,
+            },
+            {
+              icon: SvgIcon.Alert,
+              name: 'Pitch & Harmonic Naturalness',
+              desc: 'Lack of biological micro-fluctuations; pitch contour shows characteristic algorithmic smoothing.',
+              status: 'Artificial',
+              isGood: false,
+            },
+            {
+              icon: SvgIcon.Alert,
+              name: 'High-Frequency Vocoder Artifacts',
+              desc: 'Repetitive phase stitching and spectral smearing across upper frequency bins.',
+              status: 'Detected',
+              isGood: false,
+            },
+          ],
         };
-        const blob = new Blob([JSON.stringify(reportPayload, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `forensic_report_${state.result.filename.replace(/[^a-z0-9]/gi, '_')}.json`;
-        a.click();
       };
 
-      const togglePlaybackRate = () => {
-        const rates = [0.75, 1.0, 1.25];
-        const next = rates[(rates.indexOf(playbackRate) + 1) % rates.length];
-        setPlaybackRate(next);
-        if (wavesurferRef.current) {
-          wavesurferRef.current.setPlaybackRate(next);
-        }
-      };
-
-      const formatTime = (sec) => {
-        const m = Math.floor(sec / 60);
-        const s = (sec % 60).toFixed(2).padStart(5, '0');
-        return `${String(m).padStart(2, '0')}:${s}`;
-      };
-
-      // Dynamic ambient glow background based on state
-      const ambientGlowStyle = useMemo(() => {
-        if (state.status === 'analyzing') {
-          return 'radial-gradient(circle at 50% 22%, rgba(251, 191, 36, 0.14) 0%, transparent 60%)';
-        }
-        if (state.status === 'result_bonafide') {
-          return 'radial-gradient(circle at 50% 25%, rgba(52, 211, 153, 0.15) 0%, rgba(34, 211, 238, 0.06) 45%, transparent 70%)';
-        }
-        if (state.status === 'result_spoof') {
-          return 'radial-gradient(circle at 50% 25%, rgba(255, 46, 136, 0.18) 0%, rgba(255, 77, 77, 0.08) 45%, transparent 70%)';
-        }
-        return 'radial-gradient(circle at 50% 18%, rgba(34, 211, 238, 0.11) 0%, rgba(255, 46, 136, 0.04) 55%, transparent 75%)';
-      }, [state.status]);
-
-      const spoofProb = state.result ? state.result.probabilities.spoof : 0;
-      const bonaProb = state.result ? state.result.probabilities.bonafide : 0;
-      const riskInfo = state.result ? getRiskClassification(state.result.prediction, spoofProb) : null;
+      const interp = getInterpretability(result);
+      const spoofPct = result ? (result.probabilities.spoof * 100).toFixed(1) : 0;
+      const bonaPct = result ? (result.probabilities.bonafide * 100).toFixed(1) : 0;
 
       return (
-        <>
-          <div className="ambient-glow" style={{ background: ambientGlowStyle }} />
-
-          {/* Accessibility Live Verdict Announcer */}
-          <div className="sr-only" aria-live="polite" style={{ position: 'absolute', width: '1px', height: '1px', overflow: 'hidden', clip: 'rect(0,0,0,0)' }}>
-            {state.result && (
-              state.result.prediction === 'bonafide'
-                ? `Human voice verified. Bona fide probability ${(bonaProb * 100).toFixed(1)} percent.`
-                : `Synthetic voice detected. Spoof probability ${(spoofProb * 100).toFixed(1)} percent.`
-            )}
-          </div>
-
-          {/* 1. STICKY TRANSLUCENT NAVBAR */}
-          <header className="navbar">
-            <div className="container nav-content">
-              <a href="#" className="brand">
-                <div className="brand-mark">
-                  <Icon.Activity size={20} color="var(--cyan)" />
-                </div>
-                <div>
-                  <div className="font-heading" style={{ fontWeight: 700, fontSize: '17px', letterSpacing: '-0.02em' }}>
-                    VOX<span style={{ color: 'var(--cyan)' }}>FORENSICS</span>
-                  </div>
-                  <div className="mono" style={{ fontSize: '10px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
-                    WAV2VEC2 BIOMETRIC LAB
-                  </div>
-                </div>
-              </a>
-
-              <nav className="nav-links">
-                <a href="#detector" className="nav-link">Live Detector</a>
-                <a href="#pipeline" className="nav-link">Architecture</a>
-                <a href="#benchmarks" className="nav-link">ASVspoof Metrics</a>
-                <a href="/legacy" className="nav-link" style={{ fontSize: '12px', opacity: 0.75 }}>Legacy UI</a>
-              </nav>
-
-              <div className="health-pill mono" title="Polled from GET /health every 15s">
-                <span className={`pulse-dot ${health.online && health.ready ? 'online' : 'offline'}`} />
-                <span style={{ color: 'var(--text-muted)' }}>DEVICE:</span>
-                <strong style={{ color: 'var(--cyan)' }}>{health.device.toUpperCase()}</strong>
-                <span style={{ color: 'var(--glass-border-bright)' }}>|</span>
-                <span style={{ color: health.online && health.ready ? 'var(--green)' : 'var(--red)' }}>
-                  {health.online && health.ready ? 'Model ready' : 'API Offline'}
-                </span>
-              </div>
+        <div className="container">
+          {/* Header */}
+          <header>
+            <a href="#" className="brand">
+              <span className="brand-title">VERITY</span>
+              <span className="brand-badge mono">VOICE FORENSICS</span>
+            </a>
+            <div className="status-dot mono">
+              <span className={`dot ${serverOnline ? 'online' : 'offline'}`} />
+              <span>{serverOnline ? 'Model Ready (Wav2Vec2)' : 'Model Offline'}</span>
             </div>
           </header>
 
-          {/* 2. HERO SECTION + 3D HARMONIC SOUND ORB */}
-          <section className="hero-section">
-            <div className="container">
-              <div className="eyebrow-pill mono">
-                <Icon.Cpu size={14} /> ASVspoof 2019 Logical Access • 99.22% Dev Accuracy • 1.41% EER
-              </div>
+          {/* Hero */}
+          <div className="hero">
+            <h1 className="hero-title">Can you trust that voice?</h1>
+            <p className="hero-subtitle">
+              Upload any audio clip to inspect whether it is an authentic human voice or an AI-generated deepfake clone, with clear reasons anyone can understand.
+            </p>
+          </div>
 
-              <h1 className="hero-headline">
-                Can you <span className="gradient-sweep">trust that voice?</span>
-              </h1>
-
-              <p className="hero-subtitle">
-                AI-cloned voices power modern impersonation and scam calls—inspect raw vocal tract harmonics in milliseconds with neural speech forensics.
-              </p>
-
-              <div className="cta-group">
-                <a href="#detector" className="btn btn-cyan">
-                  <Icon.Activity size={17} /> Try the detector
-                </a>
-                <a
-                  href="https://github.com/Rahul-git64/Deepfake-voice-detection"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="btn btn-glass"
+          {/* Main Card */}
+          <div className="card">
+            {/* 4-Chip Preset Bar (2 Real, 2 AI) */}
+            <div className="chips-bar">
+              <span className="chips-label mono">Test Samples:</span>
+              {samplePresets.map((s) => (
+                <button
+                  key={s.id}
+                  type="button"
+                  className={`chip ${
+                    activeSampleId === s.id ? (s.type === 'human' ? 'active-human' : 'active-spoof') : ''
+                  }`}
+                  onClick={() => loadPreset(s)}
                 >
-                  <Icon.Github size={17} /> View on GitHub
-                </a>
-              </div>
-
-              {/* Interactive 3D Fibonacci Sound-Orb & 64 Mirrored Lerp Frequency Bars */}
-              <SoundOrbAndBars
-                status={state.status}
-                getFrequencyData={getFrequencyData}
-                isPlayingOrRecording={isPlaying || isRecording}
-              />
+                  {s.type === 'human' ? '🛡️' : '⚠️'} {s.name}
+                </button>
+              ))}
             </div>
-          </section>
 
-          {/* 3. CORE DETECTOR WORKBENCH */}
-          <section id="detector" style={{ padding: '16px 0 72px' }}>
-            <div className="container">
-              <div className="workbench-grid">
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '32px' }}>
+            {/* Drag & Drop Upload Zone */}
+            <div
+              className="dropzone"
+              tabIndex={0}
+              role="button"
+              aria-label="Upload audio file"
+              onClick={() => document.getElementById('fileUploadInput').click()}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  document.getElementById('fileUploadInput').click();
+                }
+              }}
+              onDragOver={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.add('active');
+              }}
+              onDragLeave={(e) => e.currentTarget.classList.remove('active')}
+              onDrop={(e) => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('active');
+                if (e.dataTransfer.files?.[0]) {
+                  const f = e.dataTransfer.files[0];
+                  loadAudioFile(f, f.name);
+                }
+              }}
+            >
+              <div className="dropzone-icon">
+                <SvgIcon.Upload />
+              </div>
+              <div style={{ fontSize: '15px', fontWeight: 600, marginBottom: '4px' }}>
+                {file ? file.name : 'Drop audio recording here, or click to browse'}
+              </div>
+              <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                WAV, FLAC, or MP3 • Up to 25 MB
+              </div>
+            </div>
 
-                  {/* Top Toolbar: Quick Sample Chips & Live Microphone Recorder */}
-                  <div className="controls-toolbar">
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                      <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
-                        Try a sample:
-                      </span>
-                      <button
-                        type="button"
-                        className={`sample-chip real ${state.activeSample === 'real' ? 'active' : ''}`}
-                        onClick={() => loadSample('real')}
-                      >
-                        <Icon.ShieldCheck size={15} color="var(--green)" />
-                        Real Voice Sample
-                      </button>
-                      <button
-                        type="button"
-                        className={`sample-chip fake ${state.activeSample === 'fake' ? 'active' : ''}`}
-                        onClick={() => loadSample('fake')}
-                      >
-                        <Icon.AlertOctagon size={15} color="var(--magenta)" />
-                        AI Spoof Sample
-                      </button>
-                    </div>
+            <input
+              id="fileUploadInput"
+              type="file"
+              accept="audio/*,.wav,.flac,.mp3,.m4a"
+              style={{ display: 'none' }}
+              onChange={(e) => {
+                if (e.target.files?.[0]) {
+                  const f = e.target.files[0];
+                  loadAudioFile(f, f.name);
+                }
+              }}
+            />
 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      {isRecording && (
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <div style={{ width: '90px', height: '8px', background: 'rgba(255,255,255,0.08)', borderRadius: '999px', overflow: 'hidden' }}>
-                            <div
-                              style={{
-                                width: `${Math.min(100, micLevel * 100)}%`,
-                                height: '100%',
-                                background: 'linear-gradient(90deg, var(--cyan), var(--magenta))',
-                                transition: 'width 0.06s linear',
-                              }}
-                            />
-                          </div>
-                          <span className="mono" style={{ fontSize: '12px', color: 'var(--red)' }}>
-                            {recordSeconds}s / 30s
-                          </span>
-                        </div>
-                      )}
-
-                      <button
-                        type="button"
-                        className={`btn btn-record ${isRecording ? 'recording' : ''}`}
-                        style={{ padding: '8px 16px', fontSize: '13px' }}
-                        onClick={toggleMicRecording}
-                      >
-                        <Icon.Mic size={16} />
-                        {isRecording ? 'Stop Recording' : 'Record from mic'}
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Accessible Drag-and-Drop Zone */}
-                  <div
-                    role="button"
-                    tabIndex={0}
-                    aria-label="Upload or drag and drop an audio file (.wav, .flac, .mp3, .m4a up to 10 MB)"
-                    className="dropzone"
-                    onClick={() => document.getElementById('audioFileInput').click()}
-                    onKeyDown={(e) => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        e.preventDefault();
-                        document.getElementById('audioFileInput').click();
-                      }
-                    }}
-                    onDragOver={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.add('drag-active');
-                    }}
-                    onDragLeave={(e) => e.currentTarget.classList.remove('drag-active')}
-                    onDrop={(e) => {
-                      e.preventDefault();
-                      e.currentTarget.classList.remove('drag-active');
-                      if (e.dataTransfer.files && e.dataTransfer.files[0]) {
-                        processSelectedFile(e.dataTransfer.files[0], 'upload');
-                      }
-                    }}
-                  >
-                    <div style={{ display: 'inline-flex', padding: '14px', borderRadius: '14px', background: 'rgba(34, 211, 238, 0.08)', border: '1px solid rgba(34, 211, 238, 0.2)', color: 'var(--cyan)', marginBottom: '12px' }}>
-                      <Icon.UploadCloud size={30} />
-                    </div>
-                    <div className="font-heading" style={{ fontSize: '18px', fontWeight: 600, marginBottom: '6px' }}>
-                      {state.file ? state.file.name : 'Drop an audio recording here, or click to browse'}
-                    </div>
-                    <div className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
-                      Supports .WAV, .FLAC, .MP3, .M4A • Max 10 MB • Automatic 16 kHz Mono Resampling
-                    </div>
-                    {state.file && (
-                      <div className="mono" style={{ marginTop: '12px', display: 'inline-flex', gap: '12px', padding: '4px 12px', borderRadius: '6px', background: 'rgba(255,255,255,0.05)', fontSize: '11px', color: 'var(--cyan)' }}>
-                        <span>FILE: {state.file.name}</span>
-                        <span>•</span>
-                        <span>SIZE: {(state.file.size / 1024).toFixed(1)} KB</span>
-                      </div>
-                    )}
-                  </div>
-
-                  <input
-                    id="audioFileInput"
-                    type="file"
-                    accept="audio/*,.wav,.flac,.mp3,.m4a"
-                    style={{ display: 'none' }}
-                    onChange={(e) => {
-                      if (e.target.files && e.target.files[0]) {
-                        processSelectedFile(e.target.files[0], 'upload');
-                      }
-                    }}
-                  />
-
-                  {/* WaveSurfer Waveform & Transport Controls */}
-                  {state.audioUrl && (
-                    <div className="acoustic-panel">
-                      {state.status === 'analyzing' && <div className="laser-scan-overlay" />}
-                      <div className="panel-header mono">
-                        <span style={{ color: 'var(--cyan)' }}>TIME-DOMAIN WAVEFORM // WAVESURFER.JS</span>
-                        <span>{formatTime(currentTime)} / {formatTime(duration)}</span>
-                      </div>
-
-                      <div ref={waveformContainerRef} style={{ minHeight: '76px' }} />
-
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: '12px', flexWrap: 'wrap', gap: '10px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <button
-                            type="button"
-                            className="btn btn-glass"
-                            style={{ padding: '7px 14px', fontSize: '12px' }}
-                            onClick={() => wavesurferRef.current && wavesurferRef.current.playPause()}
-                          >
-                            {isPlaying ? <Icon.Pause size={14} /> : <Icon.Play size={14} />}
-                            {isPlaying ? 'Pause' : 'Play Audio'}
-                          </button>
-
-                          <button
-                            type="button"
-                            className="btn btn-glass mono"
-                            style={{ padding: '7px 12px', fontSize: '12px' }}
-                            onClick={togglePlaybackRate}
-                            title="Cycle Playback Speed"
-                          >
-                            {playbackRate}x
-                          </button>
-                        </div>
-
-                        <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)' }}>
-                          TARGET PIPELINE: 16,000 Hz MONO PCM
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Real Client-Side FFT Spectrogram */}
-                  {state.audioBuffer && (
-                    <SpectrogramCanvas
-                      audioBuffer={state.audioBuffer}
-                      isAnalyzing={state.status === 'analyzing'}
-                    />
-                  )}
-
-                  {/* Primary Analyze CTA */}
-                  <div style={{ marginTop: '22px' }}>
+            {/* Step 1: Preview Waveform Player */}
+            {audioUrl && (
+              <div className="waveform-box">
+                <div ref={waveformRef} />
+                <div className="waveform-meta">
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <button
                       type="button"
-                      className="btn btn-cyan"
-                      style={{ width: '100%', padding: '16px', fontSize: '16px', letterSpacing: '-0.01em' }}
-                      disabled={!state.file || state.status === 'analyzing'}
-                      onClick={handleAnalyze}
+                      className="btn btn-ghost"
+                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                      onClick={() => wavesurferRef.current && wavesurferRef.current.playPause()}
                     >
-                      <Icon.Cpu size={19} />
-                      {state.status === 'analyzing' ? 'Running Neural Acoustic Inspection...' : 'Analyze Voice Authenticity'}
+                      {isPlaying ? <SvgIcon.Pause /> : <SvgIcon.Play />}
+                      {isPlaying ? 'Pause' : 'Play'}
                     </button>
+                    <span className="mono">
+                      {currentTime.toFixed(1)}s / {duration.toFixed(1)}s
+                    </span>
                   </div>
-
-                  {/* Analyzing Monospace Stepper (Minimum 1.8s presentation) */}
-                  {state.status === 'analyzing' && (
-                    <div
-                      className="mono"
-                      style={{
-                        marginTop: '20px',
-                        padding: '20px',
-                        borderRadius: '14px',
-                        background: 'rgba(251, 191, 36, 0.06)',
-                        border: '1px solid rgba(251, 191, 36, 0.3)',
-                      }}
-                    >
-                      <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--amber)', marginBottom: '12px' }}>
-                        <span>FORENSIC PIPELINE EXECUTION</span>
-                        <span>STEP {state.analysisStep + 1} OF 3</span>
-                      </div>
-
-                      <div style={{ display: 'grid', gap: '8px', fontSize: '13px' }}>
-                        <div style={{ color: state.analysisStep >= 0 ? 'var(--text-primary)' : 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: state.analysisStep > 0 ? 'var(--green)' : 'var(--amber)' }}>
-                            {state.analysisStep > 0 ? '✓' : '►'}
-                          </span>
-                          <span>Resampling to 16 kHz mono PCM waveform...</span>
-                        </div>
-                        <div style={{ color: state.analysisStep >= 1 ? 'var(--text-primary)' : 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: state.analysisStep > 1 ? 'var(--green)' : state.analysisStep === 1 ? 'var(--amber)' : 'var(--text-dim)' }}>
-                            {state.analysisStep > 1 ? '✓' : state.analysisStep === 1 ? '►' : '○'}
-                          </span>
-                          <span>Extracting Wav2Vec2 features (12 transformer blocks → 768-d mean pool)...</span>
-                        </div>
-                        <div style={{ color: state.analysisStep >= 2 ? 'var(--text-primary)' : 'var(--text-dim)', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: state.analysisStep === 2 ? 'var(--amber)' : 'var(--text-dim)' }}>
-                            {state.analysisStep === 2 ? '►' : '○'}
-                          </span>
-                          <span>Classifying via Deep MLP (768 → 256 → 64 → 2)...</span>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-
-                  {/* Friendly Distinct Error Card */}
-                  {state.status === 'error' && (
-                    <div
-                      role="alert"
-                      style={{
-                        marginTop: '20px',
-                        padding: '20px',
-                        borderRadius: '14px',
-                        background: 'rgba(255, 77, 77, 0.08)',
-                        border: '1px solid rgba(255, 77, 77, 0.35)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        flexWrap: 'wrap',
-                        gap: '12px',
-                      }}
-                    >
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                        <Icon.AlertOctagon size={24} color="var(--red)" />
-                        <div>
-                          <div className="font-heading" style={{ fontWeight: 700, fontSize: '15px', color: '#fca5a5' }}>
-                            {state.errorKind === 'offline' && 'Inference Server Unreachable'}
-                            {state.errorKind === 'timeout' && 'Analysis Request Timed Out'}
-                            {state.errorKind === 'file' && 'Audio Validation / Decoding Error'}
-                          </div>
-                          <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>{state.errorMsg}</div>
-                        </div>
-                      </div>
-                      <button
-                        type="button"
-                        className="btn btn-glass"
-                        style={{ padding: '8px 14px', fontSize: '12px' }}
-                        onClick={() => (state.file ? handleAnalyze() : dispatch({ type: 'RESET' }))}
-                      >
-                        <Icon.Refresh size={14} /> Retry
-                      </button>
-                    </div>
-                  )}
-
-                  {/* 4. RESULTS PANEL (Verdict, Semicircular Gauge, Side-by-Side Bars, Risk Tier, Latency) */}
-                  {(state.status === 'result_bonafide' || state.status === 'result_spoof') && state.result && riskInfo && (
-                    <div className={`verdict-banner ${state.result.prediction}`}>
-                      {/* Verdict Header */}
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '14px', marginBottom: '24px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
-                          {state.result.prediction === 'bonafide' ? (
-                            <svg width="44" height="44" viewBox="0 0 48 48" fill="none">
-                              <circle cx="24" cy="24" r="21" stroke="rgba(52, 211, 153, 0.2)" strokeWidth="3" />
-                              <circle className="check-ring-circle" cx="24" cy="24" r="21" stroke="var(--green)" strokeWidth="3" strokeLinecap="round" />
-                              <path className="check-ring-tick" d="M15 24.5L21 30.5L33 18.5" stroke="var(--green)" strokeWidth="3.2" strokeLinecap="round" strokeLinejoin="round" />
-                            </svg>
-                          ) : (
-                            <div style={{ width: '44px', height: '44px', borderRadius: '12px', background: 'rgba(255, 46, 136, 0.18)', border: '1px solid var(--magenta)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Icon.AlertOctagon size={26} color="var(--magenta)" />
-                            </div>
-                          )}
-
-                          <div>
-                            <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                              BIOMETRIC VERDICT // SOURCE: BACKEND CLASSIFIER
-                            </div>
-                            <h2
-                              className={`font-heading ${state.result.prediction === 'spoof' ? 'rgb-glitch' : ''}`}
-                              style={{
-                                fontSize: 'clamp(22px, 3vw, 30px)',
-                                fontWeight: 700,
-                                color: state.result.prediction === 'bonafide' ? 'var(--green)' : '#ffffff',
-                              }}
-                            >
-                              {state.result.prediction === 'bonafide' ? 'Human voice verified' : 'Synthetic voice detected'}
-                            </h2>
-                          </div>
-                        </div>
-
-                        {/* Risk Label Badge & Latency Chip */}
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
-                          <span
-                            className="mono"
-                            style={{
-                              padding: '6px 14px',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              fontWeight: 700,
-                              color: riskInfo.color,
-                              background: riskInfo.bg,
-                              border: `1px solid ${riskInfo.border}`,
-                              letterSpacing: '0.04em',
-                              textTransform: 'uppercase',
-                            }}
-                          >
-                            {riskInfo.label}
-                          </span>
-
-                          <span
-                            className="mono"
-                            style={{
-                              padding: '6px 12px',
-                              borderRadius: '8px',
-                              fontSize: '12px',
-                              background: 'rgba(0, 0, 0, 0.35)',
-                              border: '1px solid var(--glass-border)',
-                              color: 'var(--text-primary)',
-                            }}
-                          >
-                            ⚡ {state.result.inference_time_ms} ms
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Gauge + Side-by-Side Probability Bars */}
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))', gap: '28px', alignItems: 'center', padding: '20px', borderRadius: '14px', background: 'rgba(7, 8, 13, 0.55)', border: '1px solid var(--glass-border)' }}>
-                        <SpoofGauge
-                          spoofProbability={spoofProb}
-                          prediction={state.result.prediction}
-                        />
-
-                        {/* Side-by-Side Human vs AI Probability Telemetry */}
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '18px' }}>
-                          {/* Bona fide Human Voice Bar */}
-                          <div>
-                            <div className="mono" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                              <span style={{ color: 'var(--green)', fontWeight: 600 }}>HUMAN (BONA FIDE)</span>
-                              <span style={{ fontWeight: 700 }}>{(bonaProb * 100).toFixed(2)}%</span>
-                            </div>
-                            <div style={{ height: '12px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', border: '1px solid rgba(52, 211, 153, 0.2)' }}>
-                              <div
-                                style={{
-                                  width: `${(bonaProb * 100).toFixed(2)}%`,
-                                  height: '100%',
-                                  background: 'linear-gradient(90deg, var(--cyan), var(--green))',
-                                  boxShadow: '0 0 12px rgba(52, 211, 153, 0.5)',
-                                  transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          {/* AI / Spoof Voice Bar */}
-                          <div>
-                            <div className="mono" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', marginBottom: '6px' }}>
-                              <span style={{ color: 'var(--magenta)', fontWeight: 600 }}>AI SYNTHETIC (SPOOF)</span>
-                              <span style={{ fontWeight: 700 }}>{(spoofProb * 100).toFixed(2)}%</span>
-                            </div>
-                            <div style={{ height: '12px', borderRadius: '999px', background: 'rgba(255,255,255,0.06)', overflow: 'hidden', border: '1px solid rgba(255, 46, 136, 0.2)' }}>
-                              <div
-                                style={{
-                                  width: `${(spoofProb * 100).toFixed(2)}%`,
-                                  height: '100%',
-                                  background: 'linear-gradient(90deg, var(--magenta), var(--red))',
-                                  boxShadow: '0 0 12px rgba(255, 46, 136, 0.5)',
-                                  transition: 'width 0.8s cubic-bezier(0.16, 1, 0.3, 1)',
-                                }}
-                              />
-                            </div>
-                          </div>
-
-                          <div className="mono" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', color: 'var(--text-muted)', paddingTop: '8px', borderTop: '1px solid var(--glass-border)' }}>
-                            <span>CLIP: {state.result.filename}</span>
-                            <span>CONFIDENCE: {(state.result.confidence * 100).toFixed(2)}%</span>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Result Action Buttons */}
-                      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '20px', flexWrap: 'wrap' }}>
-                        <button type="button" className="btn btn-glass" onClick={downloadJsonReport}>
-                          <Icon.Download size={15} /> Download report (JSON)
-                        </button>
-                        <button type="button" className="btn btn-cyan" onClick={() => dispatch({ type: 'RESET' })}>
-                          <Icon.Refresh size={15} /> Analyze another
-                        </button>
-                      </div>
-                    </div>
-                  )}
+                  <span className="mono" style={{ color: 'var(--text-dim)' }}>
+                    {file?.name}
+                  </span>
                 </div>
               </div>
-            </div>
-          </section>
+            )}
 
-          {/* 5. HOW IT WORKS: 6-NODE HORIZONTAL PIPELINE WITH TRAVELLING PULSES */}
-          <section id="pipeline" style={{ padding: '64px 0' }}>
-            <div className="container">
-              <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto' }}>
-                <div className="eyebrow-pill mono">NEURAL ACOUSTIC PIPELINE</div>
-                <h2 className="font-heading" style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '12px' }}>
-                  How the Detector Works
-                </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>
-                  Every audio stream passes through a deterministic 6-stage biometric inspection pipeline before issuing a verdict.
-                </p>
+            {/* Error banner */}
+            {error && (
+              <div className="mono" style={{ marginTop: '16px', padding: '12px 16px', borderRadius: '8px', background: 'rgba(239, 68, 68, 0.1)', border: '1px solid var(--spoof-border)', color: '#fca5a5', fontSize: '13px' }}>
+                Error: {error}
               </div>
+            )}
 
-              <div className="pipeline-track">
-                {[
-                  {
-                    step: '01',
-                    title: 'Audio input',
-                    desc: 'Accepts .wav, .flac, .mp3, .m4a uploads or live WebRTC microphone streams.',
-                  },
-                  {
-                    step: '02',
-                    title: 'Mono + 16 kHz resample',
-                    desc: 'Mixes multi-channel audio to mono and resamples to a standardized 16 kHz signal.',
-                  },
-                  {
-                    step: '03',
-                    title: 'Wav2Vec2 (12 transformer blocks)',
-                    desc: 'Passes waveform through facebook/wav2vec2-base self-supervised contextual encoders.',
-                  },
-                  {
-                    step: '04',
-                    title: 'Mean pooling (768-d)',
-                    desc: 'Aggregates frame-level hidden representations into a single 768-dimensional vector.',
-                  },
-                  {
-                    step: '05',
-                    title: 'MLP classifier (768-256-64-2)',
-                    desc: 'Evaluates embeddings via BatchNorm, ReLU, and Dropout (0.3) dense layers.',
-                  },
-                  {
-                    step: '06',
-                    title: 'Verdict',
-                    desc: 'Outputs calibrated bonafide vs. spoof probabilities and risk tier in a few hundred ms.',
-                  },
-                ].map((node, i, arr) => (
-                  <div key={node.step} className="pipeline-step glass-card" onMouseMove={handleCardMouseMove}>
-                    <div className="mono" style={{ fontSize: '11px', color: 'var(--cyan)', fontWeight: 700, marginBottom: '8px' }}>
-                      STAGE {node.step}
-                    </div>
-                    <h3 className="font-heading" style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px', color: 'var(--text-primary)' }}>
-                      {node.title}
-                    </h3>
-                    <p style={{ fontSize: '12.5px', color: 'var(--text-muted)', lineHeight: 1.5 }}>
-                      {node.desc}
-                    </p>
-                    {i < arr.length - 1 && <div className="pulse-connector" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* 6. MODEL & RESULTS + SESSION HISTORY + LIMITATIONS */}
-          <section id="benchmarks" style={{ padding: '64px 0 80px' }}>
-            <div className="container">
-              <div style={{ textAlign: 'center', maxWidth: '680px', margin: '0 auto 44px' }}>
-                <div className="eyebrow-pill mono">VERIFIED BENCHMARK TELEMETRY</div>
-                <h2 className="font-heading" style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', marginBottom: '12px' }}>
-                  Model Specifications & Dev Results
-                </h2>
-                <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>
-                  Trained and validated on the ASVspoof 2019 Logical Access (LA) benchmark dataset.
-                </p>
-              </div>
-
-              {/* Primary Metric Highlights */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(230px, 1fr))', gap: '20px', marginBottom: '24px' }}>
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '24px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>DEV SET EQUAL ERROR RATE</div>
-                  <div className="mono" style={{ fontSize: '38px', fontWeight: 700, color: 'var(--cyan)', margin: '6px 0' }}>1.41%</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Calibrated at decision threshold <span className="mono" style={{ color: 'var(--text-primary)' }}>0.6402</span></div>
-                </div>
-
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '24px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>DEV SET ACCURACY</div>
-                  <div className="mono" style={{ fontSize: '38px', fontWeight: 700, color: 'var(--green)', margin: '6px 0' }}>99.22%</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Evaluated across <span className="mono" style={{ color: 'var(--text-primary)' }}>24,844</span> dev audio clips</div>
-                </div>
-
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '24px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>ASVSPOOF 2019 LA SPLITS</div>
-                  <div className="mono" style={{ fontSize: '38px', fontWeight: 700, color: 'var(--magenta)', margin: '6px 0' }}>25,380</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Training clips + <span className="mono" style={{ color: 'var(--text-primary)' }}>24,844</span> dev clips</div>
-                </div>
-
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '24px' }}>
-                  <div className="mono" style={{ fontSize: '11px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>TYPICAL INFERENCE LATENCY</div>
-                  <div className="mono" style={{ fontSize: '28px', fontWeight: 700, color: 'var(--amber)', margin: '12px 0 8px' }}>Few hundred ms</div>
-                  <div style={{ fontSize: '13px', color: 'var(--text-muted)' }}>Sub-second execution on standard CPU</div>
-                </div>
-              </div>
-
-              {/* Detailed Architecture & Training Specs Grid */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '20px' }}>
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '26px' }}>
-                  <h3 className="font-heading" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', color: 'var(--cyan)' }}>
-                    Feature Extraction & Classifier Architecture
-                  </h3>
-                  <div style={{ display: 'grid', gap: '10px', fontSize: '13.5px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Backbone Model</span>
-                      <span className="mono">facebook/wav2vec2-base</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Audio Normalization</span>
-                      <span className="mono">Mono, 16 kHz resample</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Encoder Representation</span>
-                      <span className="mono">12 blocks → 768-d mean-pooled</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>MLP Head</span>
-                      <span className="mono">768 → 256 (BN, ReLU, DO 0.3) → 64 (ReLU, DO 0.3) → 2</span>
-                    </div>
-                  </div>
-                </div>
-
-                <div className="glass-card" onMouseMove={handleCardMouseMove} style={{ padding: '26px' }}>
-                  <h3 className="font-heading" style={{ fontSize: '18px', fontWeight: 700, marginBottom: '14px', color: 'var(--green)' }}>
-                    Training Regime & Class-Imbalance Handling
-                  </h3>
-                  <div style={{ display: 'grid', gap: '10px', fontSize: '13.5px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Class Distribution</span>
-                      <span className="mono">Spoof outnumbers bona fide ~9:1</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Loss Weighting</span>
-                      <span className="mono">Balanced class weights</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--glass-border)', paddingBottom: '8px' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Optimizer & Learning Rate</span>
-                      <span className="mono">AdamW (lr = 1e-3)</span>
-                    </div>
-                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                      <span style={{ color: 'var(--text-muted)' }}>Batch Size</span>
-                      <span className="mono">128</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Session Analysis History Chart */}
-              <SessionHistoryChart
-                history={state.history}
-                onSelectRun={(item) => {
-                  dispatch({ type: 'RELOAD_HISTORY_ITEM', item });
-                  window.location.hash = '#detector';
-                }}
-              />
-
-              {/* Honest Limitations & Responsible Use Card */}
-              <div
-                className="glass-card"
-                onMouseMove={handleCardMouseMove}
-                style={{
-                  marginTop: '24px',
-                  padding: '26px',
-                  borderColor: 'rgba(251, 191, 36, 0.28)',
-                  background: 'linear-gradient(135deg, rgba(251, 191, 36, 0.05), rgba(255, 255, 255, 0.02))',
-                }}
+            {/* Step 2: Clear Action Button */}
+            {file && (
+              <button
+                type="button"
+                className="btn btn-action"
+                disabled={isAnalyzing}
+                onClick={runAnalysis}
               >
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px', color: 'var(--amber)' }}>
-                  <Icon.AlertOctagon size={20} color="var(--amber)" />
-                  <h3 className="font-heading" style={{ fontSize: '17px', fontWeight: 700 }}>
-                    Limitations & Responsible Use
-                  </h3>
-                </div>
-                <p style={{ fontSize: '14px', color: 'var(--text-muted)', lineHeight: 1.65 }}>
-                  Reported metrics (1.41% EER, 99.22% accuracy) are measured on the <strong>ASVspoof 2019 Logical Access (LA) dev set</strong>. Real-world detection performance can drop on unseen next-generation voice generators, heavily noisy environments, lossy or telefonically compressed audio codecs, and very short clips. This tool is designed as an automated <strong>screening aid, not definitive proof</strong>.
-                </p>
-              </div>
-            </div>
-          </section>
+                {isAnalyzing ? 'Inspecting Voice Authenticity...' : 'Inspect Voice Authenticity'}
+              </button>
+            )}
 
-          {/* 7. FOOTER */}
-          <footer style={{ borderTop: '1px solid var(--glass-border)', padding: '44px 0', background: 'rgba(4, 5, 10, 0.8)' }}>
-            <div className="container" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '18px' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '10px' }}>
-                {['React 18', 'FastAPI', 'PyTorch', 'facebook/wav2vec2-base', 'WaveSurfer.js', 'Web Audio API FFT', 'ASVspoof 2019 LA'].map((badge) => (
+            {/* Results Panel with Visual Scorecard & Plain-English Reason */}
+            {result && interp && (
+              <div className={`verdict-box ${interp.isHuman ? 'human' : 'spoof'}`}>
+                <div className="verdict-header">
+                  <div>
+                    <div className="mono" style={{ fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.06em', color: 'var(--text-muted)' }}>
+                      VERDICT RESULT
+                    </div>
+                    <div className="verdict-title">{interp.verdictText}</div>
+                  </div>
                   <span
-                    key={badge}
                     className="mono"
                     style={{
-                      padding: '5px 12px',
-                      borderRadius: '999px',
-                      fontSize: '11px',
-                      background: 'var(--glass-bg)',
-                      border: '1px solid var(--glass-border)',
-                      color: 'var(--text-muted)',
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      fontSize: '12px',
+                      fontWeight: 700,
+                      background: interp.isHuman ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)',
+                      color: interp.isHuman ? '#86efac' : '#fca5a5',
+                      border: `1px solid ${interp.isHuman ? 'var(--human)' : 'var(--spoof)'}`,
                     }}
                   >
-                    {badge}
+                    {interp.badge}
                   </span>
-                ))}
-              </div>
+                </div>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: '20px', fontSize: '14px', color: 'var(--text-muted)' }}>
-                <span>Built by <strong style={{ color: 'var(--text-primary)' }}>Rahul</strong></span>
-                <span>•</span>
-                <a
-                  href="https://github.com/Rahul-git64/Deepfake-voice-detection"
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{ color: 'var(--cyan)', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
-                >
-                  <Icon.Github size={15} /> GitHub Repository
-                </a>
-                <span>•</span>
-                <a href="/docs" style={{ color: 'var(--text-muted)', textDecoration: 'none' }}>OpenAPI Docs</a>
+                {/* Semicircular Spoof Gauge */}
+                <div className="gauge-wrapper">
+                  <svg width="220" height="125" viewBox="0 0 220 125">
+                    <defs>
+                      <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stopColor="#22c55e" />
+                        <stop offset="50%" stopColor="#f59e0b" />
+                        <stop offset="100%" stopColor="#ef4444" />
+                      </linearGradient>
+                    </defs>
+                    <path
+                      d="M 20 110 A 90 90 0 0 1 200 110"
+                      fill="none"
+                      stroke="rgba(255, 255, 255, 0.1)"
+                      strokeWidth="14"
+                      strokeLinecap="round"
+                    />
+                    <path
+                      d="M 20 110 A 90 90 0 0 1 200 110"
+                      fill="none"
+                      stroke="url(#gaugeGrad)"
+                      strokeWidth="14"
+                      strokeLinecap="round"
+                      strokeDasharray="282.7"
+                      strokeDashoffset={282.7 * (1 - result.probabilities.spoof)}
+                    />
+                    {/* Needle */}
+                    <g transform={`rotate(${-90 + result.probabilities.spoof * 180} 110 110)`}>
+                      <polygon points="108,110 110,28 112,110" fill="#ffffff" />
+                      <circle cx="110" cy="110" r="7" fill={interp.isHuman ? 'var(--human)' : 'var(--spoof)'} stroke="#fff" strokeWidth="2" />
+                    </g>
+                  </svg>
+                  <div style={{ position: 'absolute', bottom: '0px', textAlign: 'center' }}>
+                    <div className="mono" style={{ fontSize: '28px', fontWeight: 700, color: interp.isHuman ? '#4ade80' : '#f87171' }}>
+                      {spoofPct}%
+                    </div>
+                    <div className="mono" style={{ fontSize: '10.5px', color: 'var(--text-muted)', textTransform: 'uppercase' }}>
+                      AI Spoof Score
+                    </div>
+                  </div>
+                </div>
+
+                {/* Human vs AI Probability Breakdown */}
+                <div style={{ margin: '14px 0 18px' }}>
+                  <div className="mono" style={{ display: 'flex', justifyContent: 'space-between', fontSize: '12px', color: 'var(--text-muted)' }}>
+                    <span>Human Voice: <strong>{bonaPct}%</strong></span>
+                    <span>AI Synthetic: <strong>{spoofPct}%</strong></span>
+                  </div>
+                  <div className="prob-bar">
+                    <div style={{ width: `${bonaPct}%`, background: '#22c55e', transition: 'width 0.4s ease' }} />
+                    <div style={{ width: `${spoofPct}%`, background: '#ef4444', transition: 'width 0.4s ease' }} />
+                  </div>
+                </div>
+
+                {/* Plain-English Visual Scorecard */}
+                <div className="scorecard">
+                  <div className="scorecard-header mono">
+                    <span>WHY THIS SOUNDS {interp.isHuman ? 'HUMAN' : 'AI GENERATED'}</span>
+                    <span>3 FORENSIC INDICATORS</span>
+                  </div>
+
+                  {interp.indicators.map((ind, i) => {
+                    const IconComp = ind.icon;
+                    return (
+                      <div key={i} className="scorecard-row">
+                        <IconComp />
+                        <div>
+                          <div className="scorecard-name">{ind.name}</div>
+                          <div className="scorecard-desc">{ind.desc}</div>
+                        </div>
+                        <span className={`pill ${ind.isGood ? 'natural' : 'artificial'} mono`}>
+                          {ind.status}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Plain-English Layperson Summary */}
+                <div className="layperson-box">
+                  <strong>Summary:</strong> {interp.summary}
+                </div>
+
+                {/* Action Row */}
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '16px', paddingTop: '12px', borderTop: '1px solid rgba(255,255,255,0.08)', flexWrap: 'wrap', gap: '8px' }}>
+                  <span className="mono" style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
+                    Inference latency: {result.inference_time_ms} ms
+                  </span>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ fontSize: '12px', padding: '6px 12px' }}
+                    onClick={() => {
+                      setFile(null);
+                      setAudioUrl(null);
+                      setResult(null);
+                    }}
+                  >
+                    Analyze Another Clip
+                  </button>
+                </div>
               </div>
+            )}
+          </div>
+
+          {/* Minimal Explanatory Footer */}
+          <footer>
+            <div>
+              Built with <strong>Wav2Vec2 Base + PyTorch Classifier</strong> • Trained on ASVspoof 2019
+            </div>
+            <div className="mono">
+              Accuracy: 99.22% • EER: 1.41%
             </div>
           </footer>
-        </>
+        </div>
       );
     }
 

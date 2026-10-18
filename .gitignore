@@ -21,6 +21,7 @@ data/processed/
 *.mp3
 *.flac
 *.csv
+!benchmarks/results/*.csv
 *.parquet
 
 # Model artifacts
