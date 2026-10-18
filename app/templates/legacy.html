@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Deepfake Voice Detector (Legacy Dashboard)</title>
+  <style>
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #0f172a; color: #f8fafc; margin: 0; padding: 40px 20px; }
+    .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 24px; border-radius: 12px; border: 1px solid #334155; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.5); }
+    h1 { margin-top: 0; font-size: 20px; color: #38bdf8; display: flex; align-items: center; gap: 8px; }
+    .dropzone { border: 2px dashed #475569; padding: 30px; text-align: center; border-radius: 8px; cursor: pointer; margin-bottom: 20px; transition: border-color 0.2s; }
+    .dropzone:hover { border-color: #38bdf8; }
+    button { background: #0284c7; color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; font-size: 14px; }
+    button:disabled { background: #475569; cursor: not-allowed; }
+    .result { margin-top: 24px; padding: 16px; border-radius: 8px; display: none; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 4px; font-weight: bold; font-size: 13px; text-transform: uppercase; }
+    .badge.bonafide { background: rgba(34, 197, 94, 0.2); color: #4ade80; border: 1px solid #22c55e; }
+    .badge.spoof { background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid #ef4444; }
+    .bar-container { margin-top: 12px; }
+    .bar { height: 8px; border-radius: 4px; background: #334155; overflow: hidden; margin-top: 4px; }
+    .bar-fill { height: 100%; transition: width 0.4s ease; }
+    .meta { font-size: 12px; color: #94a3b8; margin-top: 12px; display: flex; justify-content: space-between; }
+    audio { width: 100%; margin-top: 15px; }
+    a.link { color: #38bdf8; text-decoration: none; font-size: 13px; display: inline-block; margin-bottom: 15px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <a href="/" class="link">&larr; Back to Modern Forensics Lab</a>
+    <h1>🎙️ Deepfake Audio Detector (Legacy)</h1>
+    <div class="dropzone" id="dropzone" onclick="document.getElementById('fileInput').click()">
+      <p id="dropText">Drag & drop an audio file here or click to browse</p>
+      <input type="file" id="fileInput" accept="audio/*,.wav,.flac,.mp3,.m4a" style="display:none" onchange="handleFile(this.files[0])">
+    </div>
+    <audio id="audioPlayer" controls style="display:none"></audio>
+    <button id="analyzeBtn" onclick="analyze()" disabled style="margin-top:15px">Analyze Audio</button>
+
+    <div class="result" id="resultCard">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <span style="font-weight:600" id="resFilename">audio.wav</span>
+        <span class="badge" id="resBadge">BONAFIDE</span>
+      </div>
+      <div class="bar-container">
+        <div style="display:flex; justify-content:space-between; font-size:12px;">
+          <span>Human Voice</span>
+          <span id="bonaPct">0%</span>
+        </div>
+        <div class="bar"><div id="bonaFill" class="bar-fill" style="background:#22c55e; width:0%"></div></div>
+      </div>
+      <div class="bar-container">
+        <div style="display:flex; justify-content:space-between; font-size:12px;">
+          <span>AI / Deepfake Voice</span>
+          <span id="spoofPct">0%</span>
+        </div>
+        <div class="bar"><div id="spoofFill" class="bar-fill" style="background:#ef4444; width:0%"></div></div>
+      </div>
+      <div class="meta">
+        <span id="latency">Latency: -- ms</span>
+        <span id="conf">Confidence: --%</span>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let selectedFile = null;
+    function handleFile(file) {
+      if (!file) return;
+      selectedFile = file;
+      document.getElementById('dropText').innerText = file.name;
+      const player = document.getElementById('audioPlayer');
+      player.src = URL.createObjectURL(file);
+      player.style.display = 'block';
+      document.getElementById('analyzeBtn').disabled = false;
+    }
+
+    async function analyze() {
+      if (!selectedFile) return;
+      const btn = document.getElementById('analyzeBtn');
+      btn.disabled = true;
+      btn.innerText = 'Analyzing...';
+      const formData = new FormData();
+      formData.append('file', selectedFile);
+
+      try {
+        const res = await fetch('/predict', { method: 'POST', body: formData });
+        const data = await res.json();
+        const card = document.getElementById('resultCard');
+        card.style.display = 'block';
+        document.getElementById('resFilename').innerText = data.filename;
+        const badge = document.getElementById('resBadge');
+        badge.innerText = data.prediction.toUpperCase();
+        badge.className = 'badge ' + data.prediction;
+        const bPct = Math.round(data.probabilities.bonafide * 100);
+        const sPct = Math.round(data.probabilities.spoof * 100);
+        document.getElementById('bonaPct').innerText = bPct + '%';
+        document.getElementById('bonaFill').style.width = bPct + '%';
+        document.getElementById('spoofPct').innerText = sPct + '%';
+        document.getElementById('spoofFill').style.width = sPct + '%';
+        document.getElementById('latency').innerText = 'Latency: ' + data.inference_time_ms + ' ms';
+        document.getElementById('conf').innerText = 'Confidence: ' + Math.round(data.confidence * 100) + '%';
+      } catch (err) {
+        alert('Prediction error: ' + err.message);
+      } finally {
+        btn.disabled = false;
+        btn.innerText = 'Analyze Audio';
+      }
+    }
+  </script>
+</body>
+</html>
