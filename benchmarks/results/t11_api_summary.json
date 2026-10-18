@@ -1,0 +1,1 @@
+{"parity_max_diff":0.0000494454,"parity_passed":true,"sequential_p50_ms":334.8680734634,"sequential_p95_ms":365.750014782,"sequential_p99_ms":374.7134494781,"sequential_mean_ms":335.0998592377,"server_mean_ms":321.4913,"concurrency_throughput_rps":3.0703443378,"concurrency_p95_ms":3227.7162790298,"edge_cases_passed":5,"edge_cases_total":5}

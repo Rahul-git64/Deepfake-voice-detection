@@ -1,0 +1,6 @@
+seed,dev_accuracy,dev_eer,eer_threshold,model_path
+42,0.9895749476734825,0.014459197192166588,0.9967228770256042,C:\Deepfake-voice-detection\benchmarks\results\seed_models\classifier_seed_42.pt
+43,0.991627757204959,0.015210470625279157,0.9915603995323181,C:\Deepfake-voice-detection\benchmarks\results\seed_models\classifier_seed_43.pt
+44,0.9917082595395267,0.018529522018296447,0.9814255237579346,C:\Deepfake-voice-detection\benchmarks\results\seed_models\classifier_seed_44.pt
+45,0.9925937852197714,0.016477531643608812,0.9806768894195557,C:\Deepfake-voice-detection\benchmarks\results\seed_models\classifier_seed_45.pt
+46,0.9919497665432297,0.01682514522742108,0.9731534719467163,C:\Deepfake-voice-detection\benchmarks\results\seed_models\classifier_seed_46.pt

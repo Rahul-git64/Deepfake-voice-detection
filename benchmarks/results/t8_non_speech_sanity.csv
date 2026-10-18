@@ -1,0 +1,7 @@
+Signal,Model_Spoof_Prob,Model_Bonafide_Prob,Model_Prediction_at_Frozen,API_Prediction,API_Spoof_Prob
+Pure Silence,1.0,0.0,spoof,spoof,1.0
+Pure Sine 440 Hz,0.0673,0.9327,bonafide,bonafide,0.0773
+Pure Sine 1000 Hz,0.1437,0.8563,bonafide,bonafide,0.1386
+White Noise,0.0764,0.9236,bonafide,bonafide,0.0763
+Pink Noise,0.3406,0.6594,bonafide,bonafide,0.3404
+Musical Chord (C Major),0.0759,0.9241,bonafide,bonafide,0.0648

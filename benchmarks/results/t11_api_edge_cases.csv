@@ -1,0 +1,6 @@
+test,expected_status,actual_status,pass,response_preview
+Empty file (0 bytes),400,400,True,"{""detail"":""Empty audio file provided.""}"
+Renamed text file,400,400,True,"{""detail"":""Failed to decode audio file: Error opening <_io.BytesIO object at 0x000001DDCB574220>: Fo"
+Truncated MP3 (partial header),400,400,True,"{""detail"":""Failed to decode audio file: Error opening <_io.BytesIO object at 0x000001DDCB576F20>: Fi"
+60-second audio clip,200,200,True,"{""filename"":""60s.wav"",""prediction"":""bonafide"",""label"":0,""confidence"":0.5575,""probabilities"":{""bonafi"
+Stereo 44.1 kHz audio,200,200,True,"{""filename"":""stereo.wav"",""prediction"":""spoof"",""label"":1,""confidence"":1.0,""probabilities"":{""bonafide"""
