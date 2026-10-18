@@ -1,57 +1,88 @@
-# Deepfake-voice-detection
-Deepfake voice calls are a rising problem in the current world, this has led to many unfortunate incidents and the victims are rising from the voice phishing scams. To help tackle this problem I am making this fake voice detection model which differentiates between the fake voices and real voices, ultimately reducing the victims of this scam
-# Voice Deepfake / Scam-Call Detector
+# Deepfake Voice & Audio Scam Detector — Forensics Lab
 
-Deepfake voice calls are a rising problem in the current world, this has led to many unfortunate incidents and the victims are rising from the voice phishing scams. To help counter this I am making this fake voice detection model which differentiates between the fake voices and real voices, ultimately reducing the victims of this scam.
+Deepfake voice calls are a rising threat worldwide, leading to high-stakes impersonation, phishing, and CEO/family emergency scams. This project provides an end-to-end deepfake voice detection pipeline designed to distinguish authentic human speech from AI-synthesized or cloned audio in real time.
 
-## Problem Statement
+---
 
-AI voice cloning is increasingly used to impersonate real people in scam phone calls, and most victims have no way to tell a cloned voice from a genuine one in the moment. This is distinct from stylistic voice-changer effects (like those used in reels/social media filters) — this project specifically targets **detecting synthetic/cloned speech used to impersonate real voices**, not casual voice modification.
+## 🔬 System Overview & Architecture
 
-## Solution Overview
+- **Frontend**: High-performance interactive Audio Forensics Lab (React 18, 60 FPS Canvas Sound-Orb, WaveSurfer.js waveform visualizer, dynamic probability gauge, 30s microphone recorder, live status polling).
+- **Backend / API**: FastAPI service serving predictions with sub-second latency on CPU/CUDA (`app/main.py`).
+- **Feature Extraction**: `facebook/wav2vec2-base` (12 transformer blocks, mean-pooled 768-dimensional representations) resampled to 16 kHz mono.
+- **Classifier Architecture**: `768 -> Dense(256) [BatchNorm, ReLU, Dropout 0.3] -> Dense(64) [ReLU, Dropout 0.3] -> 2 Classes` with balanced class weights handling the 9:1 spoof imbalance.
+- **Dataset**: ASVspoof 2019 Logical Access (LA) benchmark:
+  - **Train**: 25,380 clips
+  - **Dev / Validation**: 24,844 clips
 
-This project builds a binary classifier that takes an audio clip and predicts whether it is a **real (bona fide)** human voice or an **AI-generated (spoofed)** one, along with a confidence score. Rather than training an audio model from scratch, it uses a pretrained wav2vec2 model to extract speech embeddings, then trains a lightweight classifier on top of those embeddings. The trained model is served through an API and deployed publicly so it can be tested with real audio uploads.
+### 📊 Benchmark Performance (Dev Set)
+- **Equal Error Rate (EER)**: **1.41%** (Threshold: `0.6402`)
+- **Accuracy**: **99.22%**
+- **Inference Latency**: Typical sub-second execution (~250ms–700ms on CPU)
 
-## Tech Stack
+---
 
-- **Language/ML:** Python, PyTorch, HuggingFace Transformers (wav2vec2)
-- **Classifier:** scikit-learn / XGBoost
-- **Experiment tracking:** MLflow
-- **Serving:** FastAPI
-- **Containerization:** Docker
-- **CI:** GitHub Actions
-- **Deployment:** Hugging Face Spaces / Render
+## 🚀 Quickstart
 
-## Dataset
+### 1. Run with Python Local Environment
+```bash
+# Activate your environment
+miniproject\Scripts\activate
 
-This project uses the [ASVspoof](https://www.asvspoof.org/) dataset, a public benchmark of real and AI-synthesized speech built specifically for spoof/deepfake detection research.
+# Launch the FastAPI app with live reload on port 8080
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8080
+```
+Open your browser at:
+- **Modern Forensics Lab Dashboard**: [http://localhost:8080/](http://localhost:8080/)
+- **Legacy Fallback Dashboard**: [http://localhost:8080/legacy](http://localhost:8080/legacy)
+- **Interactive Swagger Docs**: [http://localhost:8080/docs](http://localhost:8080/docs)
+- **Health & Readiness Check**: [http://localhost:8080/health](http://localhost:8080/health)
 
-> Note: raw audio files are not committed to this repository (see `.gitignore`). To reproduce this project, request access to ASVspoof from the official source and place the data as described in `scripts/download_data.py` (once added).
+### 2. Run with Docker
+```bash
+# Build multi-stage container
+docker build -t deepfake-voice-detector .
 
-## Project Status / Roadmap
+# Run on port 8080
+docker run -p 8080:8080 deepfake-voice-detector
+```
 
-- [x] Repo scaffolding + README
-- [ ] ASVspoof dataset access requested
-- [ ] Environment setup (`requirements.txt`)
-- [ ] Load + inspect audio samples
-- [ ] Exploratory audio analysis (waveforms/spectrograms)
-- [ ] Extract wav2vec2 embeddings
-- [ ] Train baseline classifier
-- [ ] Track experiments with MLflow
-- [ ] Build FastAPI app
-- [ ] Dockerize
-- [ ] Set up GitHub Actions CI
-- [ ] Deploy publicly
-- [ ] (Optional) Simple frontend for demo
+---
 
-## Setup / How to Run
+## 📡 API Endpoints
 
-*(To be filled in as each component is built.)*
+### `GET /health`
+Returns the operational health, hardware acceleration device (`cpu` / `cuda`), and model loading status:
+```json
+{
+  "status": "healthy",
+  "device": "cpu",
+  "wav2vec2_loaded": true,
+  "classifier_loaded": true
+}
+```
 
-## Live Demo
+### `POST /predict`
+Multipart form upload accepting `.wav`, `.flac`, `.mp3`, and `.m4a` audio files (field name: `file`):
+```json
+{
+  "filename": "audio.wav",
+  "prediction": "bonafide",
+  "label": 0,
+  "confidence": 0.998,
+  "probabilities": {
+    "bonafide": 0.998,
+    "spoof": 0.002
+  },
+  "inference_time_ms": 276.7
+}
+```
 
-*(Link + example usage to be added after deployment.)*
+---
 
-## Results
+## 🛡️ Limitations & Responsible Use
+- Metrics are benchmarked on the **ASVspoof 2019 Logical Access** development dataset.
+- Real-world performance may vary on unseen speech generators, severe background noise, lossy compression (e.g., low-bitrate VoIP or telephony codecs), and extremely short audio snippets (< 0.5s).
+- This tool is engineered as an automated screening and forensic aid, not definitive legal proof.
 
-*(Accuracy, precision/recall, and confusion matrix to be added once a model is trained.)*
+---
+Built by Rahul
