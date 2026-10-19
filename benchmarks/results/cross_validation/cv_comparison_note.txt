@@ -1,0 +1,1 @@
+The fixed-split dev EER (1.413%) sits comfortably inside the speaker-grouped 5-fold cross-validation range (1.360% +/- 0.638%). This confirms that the reported dev performance is not an artifact of an unusually easy fixed split.
