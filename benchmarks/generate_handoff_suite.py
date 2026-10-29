@@ -479,182 +479,180 @@ def run_suite():
     print("STEP 3: CAUSAL INTERVENTIONS (PAIRED PER CLIP, N = 500 BONA FIDE, N = 500 SPOOF)")
     print("=" * 70)
 
-    # Sample 500 bona fide and 500 spoof from Dev
-    dev_df = get_dev_protocol_df()
-    half = 500
-    bona_dev = dev_df[dev_df["label"] == "bonafide"].sample(n=half, random_state=RANDOM_SEED)
-    spoof_dev = dev_df[dev_df["label"] == "spoof"].sample(n=half, random_state=RANDOM_SEED)
+    skip_step3 = (HANDOFF_DIR / "causal_interventions.csv").exists()
+    if skip_step3:
+        print("Step 3 outputs (causal_interventions.csv) already exist! Loading from disk...")
+        df_causal = pd.read_csv(HANDOFF_DIR / "causal_interventions.csv")
+    else:
+        # Sample 500 bona fide and 500 spoof from Dev
+        dev_df = get_dev_protocol_df()
+        half = 500
+        bona_dev = dev_df[dev_df["label"] == "bonafide"].sample(n=half, random_state=RANDOM_SEED)
+        spoof_dev = dev_df[dev_df["label"] == "spoof"].sample(n=half, random_state=RANDOM_SEED)
 
-    w2v = get_wav2vec2()
-    clf = get_classifier()
+        w2v = get_wav2vec2()
+        clf = get_classifier()
 
-    def get_logit_prob(waveform_np: np.ndarray, sr: int = 16000) -> Tuple[float, float]:
-        wf_tensor = torch.from_numpy(waveform_np).float()
-        emb = extract_embedding_from_waveform(wf_tensor, w2v)
-        with torch.no_grad():
-            logits = clf(emb).squeeze(0).cpu().numpy()
-            probs = torch.softmax(torch.from_numpy(logits), dim=-1).numpy()
-            diff_logit = float(logits[1] - logits[0])
-            prob_spoof = float(probs[1])
-        return diff_logit, prob_spoof
+        def get_logit_prob(waveform_np: np.ndarray, sr: int = 16000) -> Tuple[float, float]:
+            wf_tensor = torch.from_numpy(waveform_np).float()
+            emb = extract_embedding_from_waveform(wf_tensor, w2v)
+            with torch.no_grad():
+                logits = clf(emb).squeeze(0).cpu().numpy()
+                probs = torch.softmax(torch.from_numpy(logits), dim=-1).numpy()
+                diff_logit = float(logits[1] - logits[0])
+                prob_spoof = float(probs[1])
+            return diff_logit, prob_spoof
 
-    def lowpass_filter(y: np.ndarray, cutoff_hz: float, sr: int = 16000) -> np.ndarray:
-        nyquist = sr / 2.0
-        safe_cutoff = min(float(cutoff_hz), nyquist - 50.0)
-        sos = signal.butter(5, safe_cutoff, btype="lowpass", fs=sr, output="sos")
-        return signal.sosfilt(sos, y).astype(np.float32)
+        def lowpass_filter(y: np.ndarray, cutoff_hz: float, sr: int = 16000) -> np.ndarray:
+            nyquist = sr / 2.0
+            safe_cutoff = min(float(cutoff_hz), nyquist - 50.0)
+            sos = signal.butter(5, safe_cutoff, btype="lowpass", fs=sr, output="sos")
+            return signal.sosfilt(sos, y).astype(np.float32)
 
-    def add_noise(y: np.ndarray, snr_db: float) -> np.ndarray:
-        p_sig = np.mean(y ** 2)
-        if p_sig == 0:
-            return y
-        p_noise = p_sig / (10.0 ** (snr_db / 10.0))
-        noise = np.random.normal(0, np.sqrt(p_noise), len(y))
-        return (y + noise).astype(np.float32)
+        def add_noise(y: np.ndarray, snr_db: float) -> np.ndarray:
+            p_sig = np.mean(y ** 2)
+            if p_sig == 0:
+                return y
+            p_noise = p_sig / (10.0 ** (snr_db / 10.0))
+            noise = np.random.normal(0, np.sqrt(p_noise), len(y))
+            return (y + noise).astype(np.float32)
 
-    def pad_silence(y: np.ndarray, pad_sec: float, sr: int = 16000) -> np.ndarray:
-        pad_len = int(pad_sec * sr)
-        return np.concatenate([np.zeros(pad_len, dtype=np.float32), y, np.zeros(pad_len, dtype=np.float32)])
+        def pad_silence(y: np.ndarray, pad_sec: float, sr: int = 16000) -> np.ndarray:
+            pad_len = int(pad_sec * sr)
+            return np.concatenate([np.zeros(pad_len, dtype=np.float32), y, np.zeros(pad_len, dtype=np.float32)])
 
-    def trim_silence(y: np.ndarray, sr: int = 16000) -> np.ndarray:
-        # Simple energy-based trimming of leading and trailing silence
-        frame_len = int(0.025 * sr)
-        hop_len = int(0.010 * sr)
-        peak = np.max(np.abs(y))
-        thresh = max(1e-5, peak * 0.01)
-        frames = librosa_frame(y, frame_len, hop_len)
-        rms = np.sqrt(np.mean(frames ** 2, axis=0))
-        non_sil = np.where(rms >= thresh)[0]
-        if len(non_sil) == 0:
-            return y
-        start_samp = non_sil[0] * hop_len
-        end_samp = min(len(y), (non_sil[-1] + 1) * hop_len)
-        trimmed = y[start_samp:end_samp]
-        return trimmed if len(trimmed) > 0 else y
+        def trim_silence(y: np.ndarray, sr: int = 16000) -> np.ndarray:
+            frame_len = int(0.025 * sr)
+            hop_len = int(0.010 * sr)
+            peak = np.max(np.abs(y))
+            thresh = max(1e-5, peak * 0.01)
+            frames = librosa_frame(y, frame_len, hop_len)
+            rms = np.sqrt(np.mean(frames ** 2, axis=0))
+            non_sil = np.where(rms >= thresh)[0]
+            if len(non_sil) == 0:
+                return y
+            start_samp = non_sil[0] * hop_len
+            end_samp = min(len(y), (non_sil[-1] + 1) * hop_len)
+            trimmed = y[start_samp:end_samp]
+            return trimmed if len(trimmed) > 0 else y
 
-    def librosa_frame(y, frame_length, hop_length):
-        num_frames = 1 + int((len(y) - frame_length) / hop_length)
-        if num_frames <= 0:
-            return y[np.newaxis, :]
-        shape = (frame_length, num_frames)
-        strides = (y.strides[0], hop_length * y.strides[0])
-        return np.lib.stride_tricks.as_strided(y, shape=shape, strides=strides)
+        def librosa_frame(y, frame_length, hop_length):
+            num_frames = 1 + int((len(y) - frame_length) / hop_length)
+            if num_frames <= 0:
+                return y[np.newaxis, :]
+            shape = (frame_length, num_frames)
+            strides = (y.strides[0], hop_length * y.strides[0])
+            return np.lib.stride_tricks.as_strided(y, shape=shape, strides=strides)
 
-    # 1. Interventions on Spoof (n = 500): silence padding, lowpass 8k & 4k, noise 30, 20, 10 dB
-    print("Processing causal interventions on n=500 spoof clips...")
-    spoof_interventions = []
-    for _, row in tqdm(spoof_dev.iterrows(), total=len(spoof_dev)):
-        flac_path = DEV_DIR / f"{row['filename']}.flac"
-        y, sr = sf.read(str(flac_path))
-        base_logit, base_prob = get_logit_prob(y, sr)
+        print("Processing causal interventions on n=500 spoof clips...")
+        spoof_interventions = []
+        for _, row in tqdm(spoof_dev.iterrows(), total=len(spoof_dev)):
+            flac_path = DEV_DIR / f"{row['filename']}.flac"
+            y, sr = sf.read(str(flac_path))
+            base_logit, base_prob = get_logit_prob(y, sr)
 
-        # Transforms
-        transforms = {
-            "pad_silence_1s": pad_silence(y, 1.0, sr),
-            "lowpass_8khz": lowpass_filter(y, 8000, sr),
-            "lowpass_4khz": lowpass_filter(y, 4000, sr),
-            "noise_30db": add_noise(y, 30.0),
-            "noise_20db": add_noise(y, 20.0),
-            "noise_10db": add_noise(y, 10.0),
-        }
+            transforms = {
+                "pad_silence_1s": pad_silence(y, 1.0, sr),
+                "lowpass_8khz": lowpass_filter(y, 8000, sr),
+                "lowpass_4khz": lowpass_filter(y, 4000, sr),
+                "noise_30db": add_noise(y, 30.0),
+                "noise_20db": add_noise(y, 20.0),
+                "noise_10db": add_noise(y, 10.0),
+            }
 
-        row_dict = {
-            "filename": row["filename"],
-            "base_logit": base_logit,
-            "base_prob": base_prob,
-        }
-        for tname, trans_y in transforms.items():
-            t_logit, t_prob = get_logit_prob(trans_y, sr)
-            row_dict[f"{tname}_logit"] = t_logit
-            row_dict[f"{tname}_prob"] = t_prob
-            row_dict[f"{tname}_shift"] = t_logit - base_logit
-            # Flip from Fake to Human at 0.6402 threshold
-            row_dict[f"{tname}_flip"] = int((base_prob >= FROZEN_DEV_THRESHOLD) and (t_prob < FROZEN_DEV_THRESHOLD))
-        spoof_interventions.append(row_dict)
+            row_dict = {
+                "filename": row["filename"],
+                "base_logit": base_logit,
+                "base_prob": base_prob,
+            }
+            for tname, trans_y in transforms.items():
+                t_logit, t_prob = get_logit_prob(trans_y, sr)
+                row_dict[f"{tname}_logit"] = t_logit
+                row_dict[f"{tname}_prob"] = t_prob
+                row_dict[f"{tname}_shift"] = t_logit - base_logit
+                row_dict[f"{tname}_flip"] = int((base_prob >= FROZEN_DEV_THRESHOLD) and (t_prob < FROZEN_DEV_THRESHOLD))
+            spoof_interventions.append(row_dict)
 
-    df_spoof_int = pd.DataFrame(spoof_interventions)
+        df_spoof_int = pd.DataFrame(spoof_interventions)
 
-    # 2. Interventions on Bona Fide (n = 500): silence trimming, lowpass 8k & 4k, noise 30, 20, 10 dB
-    print("Processing causal interventions on n=500 bona fide clips...")
-    bona_interventions = []
-    for _, row in tqdm(bona_dev.iterrows(), total=len(bona_dev)):
-        flac_path = DEV_DIR / f"{row['filename']}.flac"
-        y, sr = sf.read(str(flac_path))
-        base_logit, base_prob = get_logit_prob(y, sr)
+        print("Processing causal interventions on n=500 bona fide clips...")
+        bona_interventions = []
+        for _, row in tqdm(bona_dev.iterrows(), total=len(bona_dev)):
+            flac_path = DEV_DIR / f"{row['filename']}.flac"
+            y, sr = sf.read(str(flac_path))
+            base_logit, base_prob = get_logit_prob(y, sr)
 
-        transforms = {
-            "trim_silence": trim_silence(y, sr),
-            "lowpass_8khz": lowpass_filter(y, 8000, sr),
-            "lowpass_4khz": lowpass_filter(y, 4000, sr),
-            "noise_30db": add_noise(y, 30.0),
-            "noise_20db": add_noise(y, 20.0),
-            "noise_10db": add_noise(y, 10.0),
-        }
+            transforms = {
+                "trim_silence": trim_silence(y, sr),
+                "lowpass_8khz": lowpass_filter(y, 8000, sr),
+                "lowpass_4khz": lowpass_filter(y, 4000, sr),
+                "noise_30db": add_noise(y, 30.0),
+                "noise_20db": add_noise(y, 20.0),
+                "noise_10db": add_noise(y, 10.0),
+            }
 
-        row_dict = {
-            "filename": row["filename"],
-            "base_logit": base_logit,
-            "base_prob": base_prob,
-        }
-        for tname, trans_y in transforms.items():
-            t_logit, t_prob = get_logit_prob(trans_y, sr)
-            row_dict[f"{tname}_logit"] = t_logit
-            row_dict[f"{tname}_prob"] = t_prob
-            row_dict[f"{tname}_shift"] = t_logit - base_logit
-            # Flip from Human to Fake at 0.6402 threshold
-            row_dict[f"{tname}_flip"] = int((base_prob < FROZEN_DEV_THRESHOLD) and (t_prob >= FROZEN_DEV_THRESHOLD))
-        bona_interventions.append(row_dict)
+            row_dict = {
+                "filename": row["filename"],
+                "base_logit": base_logit,
+                "base_prob": base_prob,
+            }
+            for tname, trans_y in transforms.items():
+                t_logit, t_prob = get_logit_prob(trans_y, sr)
+                row_dict[f"{tname}_logit"] = t_logit
+                row_dict[f"{tname}_prob"] = t_prob
+                row_dict[f"{tname}_shift"] = t_logit - base_logit
+                row_dict[f"{tname}_flip"] = int((base_prob < FROZEN_DEV_THRESHOLD) and (t_prob >= FROZEN_DEV_THRESHOLD))
+            bona_interventions.append(row_dict)
 
-    df_bona_int = pd.DataFrame(bona_interventions)
+        df_bona_int = pd.DataFrame(bona_interventions)
 
-    # Summarize causal interventions into causal_interventions.csv
-    causal_summary_rows = []
-    for tname in ["pad_silence_1s", "lowpass_8khz", "lowpass_4khz", "noise_30db", "noise_20db", "noise_10db"]:
-        shift_mean = float(df_spoof_int[f"{tname}_shift"].mean())
-        shift_std = float(df_spoof_int[f"{tname}_shift"].std())
-        flips = int(df_spoof_int[f"{tname}_flip"].sum())
-        flip_rate = float(flips / len(df_spoof_int))
-        ci_l, ci_h = wilson_ci(flips, len(df_spoof_int))
-        causal_summary_rows.append({
-            "target_class": "spoof",
-            "n_clips": len(df_spoof_int),
-            "perturbation": tname,
-            "mean_logit_shift": shift_mean,
-            "std_logit_shift": shift_std,
-            "decision_flips": flips,
-            "decision_flip_rate": flip_rate,
-            "ci_95_low": ci_l,
-            "ci_95_high": ci_h,
-        })
+        causal_summary_rows = []
+        for tname in ["pad_silence_1s", "lowpass_8khz", "lowpass_4khz", "noise_30db", "noise_20db", "noise_10db"]:
+            shift_mean = float(df_spoof_int[f"{tname}_shift"].mean())
+            shift_std = float(df_spoof_int[f"{tname}_shift"].std())
+            flips = int(df_spoof_int[f"{tname}_flip"].sum())
+            flip_rate = float(flips / len(df_spoof_int))
+            ci_l, ci_h = wilson_ci(flips, len(df_spoof_int))
+            causal_summary_rows.append({
+                "target_class": "spoof",
+                "n_clips": len(df_spoof_int),
+                "perturbation": tname,
+                "mean_logit_shift": shift_mean,
+                "std_logit_shift": shift_std,
+                "decision_flips": flips,
+                "decision_flip_rate": flip_rate,
+                "ci_95_low": ci_l,
+                "ci_95_high": ci_h,
+            })
 
-    for tname in ["trim_silence", "lowpass_8khz", "lowpass_4khz", "noise_30db", "noise_20db", "noise_10db"]:
-        shift_mean = float(df_bona_int[f"{tname}_shift"].mean())
-        shift_std = float(df_bona_int[f"{tname}_shift"].std())
-        flips = int(df_bona_int[f"{tname}_flip"].sum())
-        flip_rate = float(flips / len(df_bona_int))
-        ci_l, ci_h = wilson_ci(flips, len(df_bona_int))
-        causal_summary_rows.append({
-            "target_class": "bonafide",
-            "n_clips": len(df_bona_int),
-            "perturbation": tname,
-            "mean_logit_shift": shift_mean,
-            "std_logit_shift": shift_std,
-            "decision_flips": flips,
-            "decision_flip_rate": flip_rate,
-            "ci_95_low": ci_l,
-            "ci_95_high": ci_h,
-        })
+        for tname in ["trim_silence", "lowpass_8khz", "lowpass_4khz", "noise_30db", "noise_20db", "noise_10db"]:
+            shift_mean = float(df_bona_int[f"{tname}_shift"].mean())
+            shift_std = float(df_bona_int[f"{tname}_shift"].std())
+            flips = int(df_bona_int[f"{tname}_flip"].sum())
+            flip_rate = float(flips / len(df_bona_int))
+            ci_l, ci_h = wilson_ci(flips, len(df_bona_int))
+            causal_summary_rows.append({
+                "target_class": "bonafide",
+                "n_clips": len(df_bona_int),
+                "perturbation": tname,
+                "mean_logit_shift": shift_mean,
+                "std_logit_shift": shift_std,
+                "decision_flips": flips,
+                "decision_flip_rate": flip_rate,
+                "ci_95_low": ci_l,
+                "ci_95_high": ci_h,
+            })
 
-    df_causal = pd.DataFrame(causal_summary_rows)
-    df_causal.to_csv(HANDOFF_DIR / "causal_interventions.csv", index=False)
+        df_causal = pd.DataFrame(causal_summary_rows)
+        df_causal.to_csv(HANDOFF_DIR / "causal_interventions.csv", index=False)
 
     print("\n" + "=" * 70)
     print("STEP 4: OOD-DISTANCE GATE PROTOTYPE")
     print("=" * 70)
 
     # Dev bona fide embeddings for background distribution
-    dev_bona_mask = (y_all[len(tr_pt["filenames"]):] == 0)
-    dev_bona_embs = X_all[len(tr_pt["filenames"]):][dev_bona_mask].numpy()
+    dev_bona_mask = (split_all == "dev") & (y_all == 0)
+    dev_bona_embs = X_all[dev_bona_mask].numpy()
     
     # Fit mean and covariance
     mu_dev = np.mean(dev_bona_embs, axis=0)
@@ -690,7 +688,7 @@ def run_suite():
     ]
 
     for gname, embs_tensor in dist_groups.items():
-        embs_np = embs_tensor.float().numpy()
+        embs_np = np.asarray(embs_tensor, dtype=np.float32)
         diffs = embs_np - mu_dev
         dists = np.sqrt(np.sum((diffs @ inv_cov) * diffs, axis=1))
         n_g = len(dists)
@@ -709,6 +707,7 @@ def run_suite():
     # Add my_recordings if diagnostic clips exist
     rec_csv_p = "benchmarks/results/diagnose_real_audio.csv"
     if Path(rec_csv_p).exists():
+        w2v = get_wav2vec2()
         df_diag = pd.read_csv(rec_csv_p)
         # Use existing sim clips
         sim_embs = []

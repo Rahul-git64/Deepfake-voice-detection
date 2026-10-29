@@ -1,0 +1,224 @@
+{
+  "generated_timestamp": "2026-10-29 10:39:24 UTC",
+  "git_commit": "7b5fd72247b3d2cd9793ef706d6e6f810f357045",
+  "exact_command": "python benchmarks/make_handoff.py",
+  "total_files": 36,
+  "files": {
+    "augment_config.yaml": {
+      "path": "handoff/augment_config.yaml",
+      "size_bytes": 1439,
+      "sha256": "2b6a8f1499bb4d16ac1b419bb49a3487c04da9b262b9b31b15fa51b8b6d42458",
+      "row_count": 56
+    },
+    "augmentation_distributions.png": {
+      "path": "handoff/augmentation_distributions.png",
+      "size_bytes": 106508,
+      "sha256": "400bc91b1d673596f3546e3eb7e3d4c3210fc0653e94b630221e9ce436162acd",
+      "row_count": null
+    },
+    "augmentation_gallery.zip": {
+      "path": "handoff/augmentation_gallery.zip",
+      "size_bytes": 15120651,
+      "sha256": "7bfdc03308feed43258f2fe28f4b12f5ff435a9d1f899785b314173ba8e9d9e3",
+      "row_count": null
+    },
+    "bandlimit_sweep_results.csv": {
+      "path": "handoff/bandlimit_sweep_results.csv",
+      "size_bytes": 3034,
+      "sha256": "f8e08946b2d59e7d8e8b5f885ca912cbe6ebd101a5e80ea7ad3c5fe840dde294",
+      "row_count": 18
+    },
+    "benchmarks/make_handoff.py": {
+      "path": "handoff/benchmarks/make_handoff.py",
+      "size_bytes": 53312,
+      "sha256": "a11247be5642dda2c3eb65e800123831e20a34bd9e57cf0af44cd0d617293059",
+      "row_count": 1087
+    },
+    "DATA_CARD.md": {
+      "path": "handoff/DATA_CARD.md",
+      "size_bytes": 3336,
+      "sha256": "2bdd70f42aaf2b88dd76660e50e00a3c6408db457fcfe650beb9fdf68d8a42de",
+      "row_count": 48
+    },
+    "data_counts.csv": {
+      "path": "handoff/data_counts.csv",
+      "size_bytes": 2238,
+      "sha256": "d57c672355d25c1f036c2d0082038aea626c470c16d9b4df87920d50bab44baf",
+      "row_count": 38
+    },
+    "git_state.txt": {
+      "path": "handoff/git_state.txt",
+      "size_bytes": 1881,
+      "sha256": "a829de8d17d0ded544a21c19ee723ba0b455aea5528509c035a6ccc9dc50c3c4",
+      "row_count": 44
+    },
+    "HANDOFF.md": {
+      "path": "handoff/HANDOFF.md",
+      "size_bytes": 10235,
+      "sha256": "5db3cdad09ec4a6d156f434abd7401eadff3ad6f295cf0c64bbf169ffff943f8",
+      "row_count": 73
+    },
+    "leave_one_attack_out_results.csv": {
+      "path": "handoff/leave_one_attack_out_results.csv",
+      "size_bytes": 1732,
+      "sha256": "411f0ec593699c19bb02f68526036ba87075da6e89a4c501bbe4f10539d39f5f",
+      "row_count": 6
+    },
+    "loao_histograms.png": {
+      "path": "handoff/loao_histograms.png",
+      "size_bytes": 82578,
+      "sha256": "30b0c1ecefd2703aed076dbf7f1680d51b99889f42721155a0cd084de3224daf",
+      "row_count": null
+    },
+    "manifest_sample.csv": {
+      "path": "handoff/manifest_sample.csv",
+      "size_bytes": 204680,
+      "sha256": "fc4fa2fd65f8a7b26fcb8befa6a220a706fdaa1b0a9a655766f557066bde2900",
+      "row_count": 2000
+    },
+    "my_recordings_inventory.csv": {
+      "path": "handoff/my_recordings_inventory.csv",
+      "size_bytes": 4284,
+      "sha256": "87fd97ec95df5bb2976eb085d1e0306c857a68c5048d2b306722eec6256489e0",
+      "row_count": 30
+    },
+    "noise_decomposition_results.csv": {
+      "path": "handoff/noise_decomposition_results.csv",
+      "size_bytes": 3918,
+      "sha256": "c5ad37e855d8f70ab467dfb7ea1437018d57daecfc591835d6e914db497d882a",
+      "row_count": 24
+    },
+    "ood_distance_gate_results.csv": {
+      "path": "handoff/ood_distance_gate_results.csv",
+      "size_bytes": 461,
+      "sha256": "a4886b9487ce3810e5fd4f62fa13a76f10fe438ec5f09f90813a234411c1e426",
+      "row_count": 5
+    },
+    "padding_comparison.csv": {
+      "path": "handoff/padding_comparison.csv",
+      "size_bytes": 624,
+      "sha256": "5ead5b4cdf449b31da4a8ac19e1ff485cf45d3066bae4c5c7aa6fad5a9e6a1ed",
+      "row_count": 6
+    },
+    "per_fold_bootstrap_cis.csv": {
+      "path": "handoff/per_fold_bootstrap_cis.csv",
+      "size_bytes": 2121,
+      "sha256": "61bf24793833ca40412440e4cf52887295248f688665f74907f73bb928753877",
+      "row_count": 15
+    },
+    "per_fold_roc.png": {
+      "path": "handoff/per_fold_roc.png",
+      "size_bytes": 80697,
+      "sha256": "0ef426e889335e5ff45b188b187b1cc625507367d9b54224808825cee39eafd6",
+      "row_count": null
+    },
+    "regression_battery.csv": {
+      "path": "handoff/regression_battery.csv",
+      "size_bytes": 10430,
+      "sha256": "bf19b62b88c18939f488eb87aca3bd0afbb134f5d0cb66649d6900166007e806",
+      "row_count": 62
+    },
+    "shortcut_check_v2.csv": {
+      "path": "handoff/shortcut_check_v2.csv",
+      "size_bytes": 1100,
+      "sha256": "1819f93d6d18e4908e41f98629dd0397dd84b74d335f1f20aad4c93258caebb3",
+      "row_count": 9
+    },
+    "silence_dose_response.csv": {
+      "path": "handoff/silence_dose_response.csv",
+      "size_bytes": 2395,
+      "sha256": "df57fe26bb0a0a807941a5acfd453ac5ac527116bbb7e06777c442412b21a06f",
+      "row_count": 14
+    },
+    "silence_dose_response.png": {
+      "path": "handoff/silence_dose_response.png",
+      "size_bytes": 126042,
+      "sha256": "be1cb8de8419b9bbf2ad43a46a008a3b8ef469dfed518a7ef0d30b3af7888912",
+      "row_count": null
+    },
+    "silence_trim_definition_stats.csv": {
+      "path": "handoff/silence_trim_definition_stats.csv",
+      "size_bytes": 164,
+      "sha256": "6a5a0af3b04da66d6cb0b1c6dc405becb66cbca09abed7f362f10cb979e17059",
+      "row_count": 2
+    },
+    "speaker_frr_boxplot.png": {
+      "path": "handoff/speaker_frr_boxplot.png",
+      "size_bytes": 26347,
+      "sha256": "43129500f06e3abf9629e7505edc464643a0e404de6b6174df1baef82d716080",
+      "row_count": null
+    },
+    "speaker_frr_breakdown.csv": {
+      "path": "handoff/speaker_frr_breakdown.csv",
+      "size_bytes": 1160,
+      "sha256": "0ebd344e3859ecd2dbd8507c3a90d04da30b52352cf2026ba533e8b4e7518ab0",
+      "row_count": 40
+    },
+    "speaker_grouped_5fold_results.csv": {
+      "path": "handoff/speaker_grouped_5fold_results.csv",
+      "size_bytes": 1030,
+      "sha256": "b84773334273739b96562dbcc404a8009054d80ba6e8b99d359fe45caaa4a577",
+      "row_count": 5
+    },
+    "speaker_profiles.csv": {
+      "path": "handoff/speaker_profiles.csv",
+      "size_bytes": 3055,
+      "sha256": "670747ed8460d94f86ea6be1f65e677d3d83d4070d43cee220cd19414e0f48d9",
+      "row_count": 40
+    },
+    "speaker_spearman_correlations.csv": {
+      "path": "handoff/speaker_spearman_correlations.csv",
+      "size_bytes": 661,
+      "sha256": "12fe1af1e129d43633766defbba14f72fb8edd153ff136a362d5c2fc3ea18de8",
+      "row_count": 9
+    },
+    "src_v2/augment.py": {
+      "path": "handoff/src_v2/augment.py",
+      "size_bytes": 10185,
+      "sha256": "9634d3a2adc2fa170db0e629c2e913b6c6520aad1ff121834328afb9b998f224",
+      "row_count": 266
+    },
+    "src_v2/evaluate_regression.py": {
+      "path": "handoff/src_v2/evaluate_regression.py",
+      "size_bytes": 9143,
+      "sha256": "feb5e96b38d01ab9599c88c13d4ab6cc31e6a3d1fb76c2df47d195039066cb5c",
+      "row_count": 249
+    },
+    "src_v2/shortcut_check.py": {
+      "path": "handoff/src_v2/shortcut_check.py",
+      "size_bytes": 12632,
+      "sha256": "61b8c0ff1d4617f071eae7ff308826db4d1c50442ed5ab0aa070e5823b0e8dc7",
+      "row_count": 316
+    },
+    "system_info.json": {
+      "path": "handoff/system_info.json",
+      "size_bytes": 396,
+      "sha256": "ad03ab0af3ce0c530882c2f0dffc8fa5005ce17d6bd1ff6d87ff27f1883ec8db",
+      "row_count": 15
+    },
+    "t1_eval_generalization.csv": {
+      "path": "handoff/t1_eval_generalization.csv",
+      "size_bytes": 466,
+      "sha256": "38c7195234093f79ce62b6bb6fc870f6bbacab7f203965cd416e605d6baf0722",
+      "row_count": 1
+    },
+    "tests/test_augment_v2.py": {
+      "path": "handoff/tests/test_augment_v2.py",
+      "size_bytes": 3290,
+      "sha256": "a9c598fae0911bfb042ea41f220b44a036623004cbbb8715f6a61be7b83aee2d",
+      "row_count": 88
+    },
+    "tests/test_pipeline.py": {
+      "path": "handoff/tests/test_pipeline.py",
+      "size_bytes": 967,
+      "sha256": "4061206f1f5c2e4df53caef9354528564a0da778017ee3d170963cfd27a0bde5",
+      "row_count": 31
+    },
+    "threshold_stability.csv": {
+      "path": "handoff/threshold_stability.csv",
+      "size_bytes": 832,
+      "sha256": "5aea75a55c85827e7ff0b0c0eeb757fff851defe0abf92beb6b980bee7e4be6e",
+      "row_count": 5
+    }
+  }
+}

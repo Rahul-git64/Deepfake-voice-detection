@@ -54,3 +54,9 @@ mlartifacts/
 .coverage
 htmlcov/
 config.py
+
+# Large outputs and bundles
+*.zip
+/handoff/
+data_v2/
+benchmarks/results/handoff/cv_scores.csv

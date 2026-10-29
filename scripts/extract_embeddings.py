@@ -2,6 +2,8 @@ import argparse
 import os
 from pathlib import Path
 
+import numpy as np
+import soundfile as sf
 import torch
 import torchaudio
 from transformers import Wav2Vec2FeatureExtractor, Wav2Vec2Model
@@ -58,9 +60,15 @@ def parse_protocol(protocol_path: Path):
 
 
 def load_audio(path: Path, target_sr: int = TARGET_SR):
-    waveform, sr = torchaudio.load(str(path))
-    if waveform.shape[0] > 1:  # stereo -> mono
-        waveform = waveform.mean(dim=0, keepdim=True)
+    try:
+        data, sr = sf.read(str(path))
+        if data.ndim > 1:  # stereo -> mono
+            data = np.mean(data, axis=1)
+        waveform = torch.from_numpy(data).float().unsqueeze(0)
+    except Exception:
+        waveform, sr = torchaudio.load(str(path))
+        if waveform.shape[0] > 1:  # stereo -> mono
+            waveform = waveform.mean(dim=0, keepdim=True)
     if sr != target_sr:
         waveform = torchaudio.functional.resample(waveform, sr, target_sr)
     return waveform.squeeze(0)  # 1D tensor
